@@ -15,6 +15,7 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
 const INTRO_TEXT = 'Anuj';
+const INTRO_HOLD_DURATION = 2000;
 const prefersReducedMotion = () => typeof window !== 'undefined'
   && typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -64,8 +65,15 @@ export default function App() {
 
     if (prefersReducedMotion()) {
       setIntroText(INTRO_TEXT);
-      const timer = window.setTimeout(closeWelcome, 0);
-      return () => window.clearTimeout(timer);
+      let closeTimer = 0;
+      const holdTimer = window.setTimeout(() => {
+        setIntroClosing(true);
+        closeTimer = window.setTimeout(closeWelcome, 0);
+      }, INTRO_HOLD_DURATION);
+      return () => {
+        window.clearTimeout(holdTimer);
+        window.clearTimeout(closeTimer);
+      };
     }
 
     let index = 0;
@@ -79,7 +87,7 @@ export default function App() {
         holdTimer = window.setTimeout(() => {
           setIntroClosing(true);
           closeTimer = window.setTimeout(closeWelcome, 1000);
-        }, 900);
+        }, INTRO_HOLD_DURATION);
       }
     }, 260);
 
