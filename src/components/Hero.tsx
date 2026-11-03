@@ -87,10 +87,16 @@ export const Hero: React.FC = () => {
     const titleLineStagger = 180;
     const titleAnimationEnd = titleLineDuration + titleLineStagger;
     let titleFrame = 0;
+    let titleHoldTimer = 0;
     let titleRun = 0;
     let dropTriggered = false;
     const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
     let titleStarted = false;
+    const completeTitle = () => {
+      if (dropTriggered) return;
+      dropTriggered = true;
+      window.dispatchEvent(new Event('portfolio:hero-name-complete'));
+    };
 
     const animateTitle = (now: number) => {
       const run = titleRun;
@@ -104,10 +110,6 @@ export const Hero: React.FC = () => {
         line.style.opacity = `${eased}`;
         line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
       });
-      if (!dropTriggered && now - start >= titleAnimationEnd) {
-        dropTriggered = true;
-        window.dispatchEvent(new Event('portfolio:hero-name-complete'));
-      }
       if (run !== titleRun) return;
       if (now - start < titleAnimationEnd) {
         titleFrame = requestAnimationFrame(animateTitle);
@@ -117,6 +119,7 @@ export const Hero: React.FC = () => {
           line.style.removeProperty('opacity');
           line.style.removeProperty('transform');
         });
+        titleHoldTimer = window.setTimeout(completeTitle, 4000);
       }
     };
     let titleStartTime = 0;
@@ -132,7 +135,7 @@ export const Hero: React.FC = () => {
           line.style.removeProperty('opacity');
           line.style.removeProperty('transform');
         });
-        window.dispatchEvent(new Event('portfolio:hero-name-complete'));
+        titleHoldTimer = window.setTimeout(completeTitle, 4000);
         return;
       }
       titleFrame = requestAnimationFrame(animateTitle);
@@ -199,6 +202,7 @@ export const Hero: React.FC = () => {
     return () => {
       cancelAnimationFrame(frameRef.current);
       if (titleFrame) cancelAnimationFrame(titleFrame);
+      if (titleHoldTimer) window.clearTimeout(titleHoldTimer);
       window.removeEventListener('portfolio:intro-start', handleIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };
