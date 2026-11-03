@@ -105,7 +105,8 @@ export const SkillsSection: React.FC = () => {
         }
         if (card) {
           card.style.opacity = `${reveal.toFixed(3)}`;
-          card.style.transform = `translate3d(0, ${((1 - reveal) * 24).toFixed(1)}px, 0)`;
+          const fallOffset = (1 - reveal) ** 2 * -120;
+          card.style.transform = `translate3d(0, ${fallOffset.toFixed(1)}px, 0)`;
           card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
         }
       });

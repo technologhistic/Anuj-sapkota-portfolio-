@@ -83,12 +83,7 @@ export const Hero: React.FC = () => {
   };
 
   useEffect(() => {
-    const titleLineDuration = 1100;
-    const titleLineStagger = 180;
-    const titleAnimationEnd = titleLineDuration + titleLineStagger;
-    let titleFrame = 0;
     let titleHoldTimer = 0;
-    let titleRun = 0;
     let dropTriggered = false;
     const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
     let titleStarted = false;
@@ -98,47 +93,14 @@ export const Hero: React.FC = () => {
       window.dispatchEvent(new Event('portfolio:hero-name-complete'));
     };
 
-    const animateTitle = (now: number) => {
-      const run = titleRun;
-      const start = titleStartTime || now;
-      titleStartTime = start;
-      titleLines.forEach((line, index) => {
-        const progress = Math.max(0, Math.min(1, (now - start - index * titleLineStagger) / titleLineDuration));
-        const eased = progress < 0.5
-          ? 4 * progress ** 3
-          : 1 - ((-2 * progress + 2) ** 3) / 2;
-        line.style.opacity = `${eased}`;
-        line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
-      });
-      if (run !== titleRun) return;
-      if (now - start < titleAnimationEnd) {
-        titleFrame = requestAnimationFrame(animateTitle);
-      } else {
-        titleFrame = 0;
-        titleLines.forEach((line) => {
-          line.style.removeProperty('opacity');
-          line.style.removeProperty('transform');
-        });
-        titleHoldTimer = window.setTimeout(completeTitle, 4000);
-      }
-    };
-    let titleStartTime = 0;
     const startTitle = () => {
       if (titleStarted) return;
       titleStarted = true;
-      titleRun += 1;
-      if (titleFrame) cancelAnimationFrame(titleFrame);
-      dropTriggered = false;
-      titleStartTime = 0;
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        titleLines.forEach((line) => {
-          line.style.removeProperty('opacity');
-          line.style.removeProperty('transform');
-        });
-        titleHoldTimer = window.setTimeout(completeTitle, 4000);
-        return;
-      }
-      titleFrame = requestAnimationFrame(animateTitle);
+      titleLines.forEach((line) => {
+        line.style.removeProperty('opacity');
+        line.style.removeProperty('transform');
+      });
+      titleHoldTimer = window.setTimeout(completeTitle, 4000);
     };
 
     let lastTime = 0;
@@ -148,11 +110,8 @@ export const Hero: React.FC = () => {
     };
     window.addEventListener('portfolio:intro-start', handleIntroStart);
     window.addEventListener('portfolio:hero-name-complete', startDrop);
-    // Register listeners first: reduced motion can complete the reveal synchronously.
-    // The root flag covers a late mount after the intro event has already fired.
-    if (document.documentElement.dataset.portfolioIntroComplete === 'true') {
-      startTitle();
-    }
+    // Leave the name visible from the first render; start the four-second hold now.
+    startTitle();
     const animate = (now: number) => {
       const spring = springRef.current;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
@@ -201,7 +160,6 @@ export const Hero: React.FC = () => {
     frameRef.current = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frameRef.current);
-      if (titleFrame) cancelAnimationFrame(titleFrame);
       if (titleHoldTimer) window.clearTimeout(titleHoldTimer);
       window.removeEventListener('portfolio:intro-start', handleIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
