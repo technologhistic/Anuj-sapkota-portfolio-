@@ -7,6 +7,8 @@ type CardSpring = { x: number; y: number; vx: number; vy: number; targetX: numbe
 export const Hero: React.FC = () => {
   const [motionPaused, setMotionPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const lanyardRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
   const springRef = useRef<CardSpring>({ x: 0, y: 0, vx: 0, vy: 0, targetX: 0, targetY: 0, lightX: 50, lightY: 50 });
   const pausedRef = useRef(false);
@@ -15,9 +17,9 @@ export const Hero: React.FC = () => {
   const startSpringRef = useRef<() => void>(() => {});
 
   const moveLight = (clientX: number, clientY: number) => {
-    const card = cardRef.current;
-    if (!card || pausedRef.current || reducedMotionRef.current) return;
-    const rect = card.getBoundingClientRect();
+    const stage = stageRef.current;
+    if (!stage || pausedRef.current || reducedMotionRef.current) return;
+    const rect = stage.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
     const y = Math.max(-1, Math.min(1, ((clientY - rect.top) / rect.height) * 2 - 1));
     const spring = springRef.current;
@@ -33,11 +35,6 @@ export const Hero: React.FC = () => {
     draggingRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
-    moveLight(event.clientX, event.clientY);
-  };
-
-  const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    if (event.pointerType === 'touch' && !draggingRef.current) return;
     moveLight(event.clientX, event.clientY);
   };
 
@@ -94,6 +91,9 @@ export const Hero: React.FC = () => {
         card.style.setProperty('--tilt-y', `${spring.y.toFixed(2)}deg`);
         card.style.setProperty('--light-x', `${spring.lightX.toFixed(1)}%`);
         card.style.setProperty('--light-y', `${spring.lightY.toFixed(1)}%`);
+      }
+      if (lanyardRef.current) {
+        lanyardRef.current.style.setProperty('--lanyard-sway', `${(spring.y * 0.12).toFixed(2)}deg`);
       }
       if (spring.x || spring.y || spring.vx || spring.vy || spring.targetX || spring.targetY) {
         frame = requestAnimationFrame(animate);
@@ -166,23 +166,31 @@ export const Hero: React.FC = () => {
           </div>
         </div>
 
-        <div className="hero-portrait-wrap">
+        <div
+          className="hero-portrait-wrap"
+          ref={stageRef}
+          onPointerMove={(event) => {
+            if (event.pointerType !== 'touch' || draggingRef.current) moveLight(event.clientX, event.clientY);
+          }}
+          onPointerLeave={releasePointer}
+          onPointerCancel={releasePointer}
+        >
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
           <div className={`portrait-pendulum${isDragging ? ' portrait-pendulum--active' : ''}`}>
-            <div className="portrait-strap" aria-hidden="true" />
-            <div className="portrait-clip" aria-hidden="true" />
+            <div className="portrait-lanyard-system" ref={lanyardRef}>
+              <div className="portrait-strap" aria-hidden="true" />
+              <div className="portrait-clip" aria-hidden="true" />
+            </div>
             <article
               ref={cardRef}
               className={`portrait-card${isDragging ? ' portrait-card--dragging' : ''}`}
               aria-label="Interactive ID card for Anuj Sapkota. Move the pointer or touch and drag the card to tilt it. Use arrow keys to tilt and Escape to center it."
               tabIndex={0}
               onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
               onPointerUp={releasePointer}
               onPointerCancel={releasePointer}
               onLostPointerCapture={releasePointer}
-              onPointerLeave={(event) => { if (event.pointerType !== 'touch' && !draggingRef.current) releasePointer(); }}
               onKeyDown={handleKeyDown}
             >
               <div className="portrait-slot" aria-hidden="true" />
