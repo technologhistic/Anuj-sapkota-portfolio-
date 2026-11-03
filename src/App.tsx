@@ -23,8 +23,8 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F6F3EC] text-[#5C5952] selection:bg-[#24231F] selection:text-[#F6F3EC]">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[#24231F] focus:px-4 focus:py-3 focus:text-sm focus:text-white">Skip to content</a>
+    <div className="site-shell relative min-h-screen overflow-x-clip text-[#bac2ba] selection:bg-[#c9ff5f] selection:text-[#11150d]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[#c9ff5f] focus:px-4 focus:py-3 focus:text-sm focus:text-[#11150d]">Skip to content</a>
       <Navigation activeSection={activeSection} />
       <main id="main-content"><Hero /><AboutSection /><SkillsSection /><ProjectsSection /><EducationSection /><ContactSection /></main>
       <Footer />

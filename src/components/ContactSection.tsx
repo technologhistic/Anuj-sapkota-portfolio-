@@ -1,18 +1,17 @@
 import React from 'react';
-import { ArrowUpRight, MapPin } from 'lucide-react';
+import { ArrowUpRight, MoveUpRight } from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
 
 export const ContactSection: React.FC = () => (
-  <section id="contact" className="py-28 md:py-36">
-    <div className="max-w-7xl mx-auto px-6 md:px-12">
-      <div className="rounded-lg bg-[#24231F] text-[#F6F3EC] p-8 sm:p-12 md:p-16 flex flex-col md:flex-row md:items-end justify-between gap-10">
-        <div>
-          <span className="block text-[11px] uppercase font-mono tracking-[0.25em] text-[#C7B9A5] mb-4">05 / FIND ME</span>
-          <h2 className="font-serif text-4xl sm:text-6xl leading-tight">Let’s keep <span className="italic text-[#C7B9A5]">building.</span></h2>
-          <p className="mt-5 text-sm sm:text-base text-[#D2CCC1]">Follow my work and current projects on GitHub.</p>
-          <p className="mt-6 inline-flex items-center gap-2 text-xs font-mono text-[#C7B9A5]"><MapPin size={14} />{PERSONAL_INFO.location}</p>
+  <section id="contact" className="relative overflow-hidden py-24 sm:py-32">
+    <div className="absolute inset-x-0 bottom-0 h-80 bg-[radial-gradient(ellipse_at_50%_100%,rgba(201,255,95,.09),transparent_65%)]" />
+    <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="overflow-hidden rounded-[2rem] border border-[#c9ff5f]/20 bg-[#111714] p-8 sm:p-12 lg:p-16">
+        <div className="grid gap-10 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-8"><span className="font-mono text-[10px] uppercase tracking-[.2em] text-[#c9ff5f]">05 / Follow along</span><h2 className="mt-5 max-w-3xl text-4xl font-medium leading-[1.05] sm:text-6xl lg:text-7xl">The next idea is <span className="text-[#78857a]">always loading.</span></h2><p className="mt-6 max-w-lg text-sm leading-7 text-[#a1aba2]">I’m learning, building, and sharing my progress in public. Find the source and follow along on GitHub.</p></div>
+          <div className="lg:col-span-4 lg:justify-self-end"><a href={PERSONAL_INFO.github} target="_blank" rel="noreferrer" className="group inline-flex min-h-14 items-center gap-4 rounded-full bg-[#c9ff5f] px-6 font-medium text-[#11150d] transition-transform hover:translate-y-[-2px]">Visit my GitHub <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#11150d]/10"><ArrowUpRight size={16} /></span></a></div>
         </div>
-        <a href={PERSONAL_INFO.github} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 self-start md:self-auto rounded-md bg-[#F6F3EC] text-[#24231F] px-6 py-4 text-xs font-mono uppercase tracking-wider hover:bg-[#C7B9A5] transition-colors">GitHub profile <ArrowUpRight size={16} /></a>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-5 font-mono text-[10px] uppercase tracking-[.15em] text-[#68746a]"><span>{PERSONAL_INFO.brand}</span><span className="inline-flex items-center gap-2"><MoveUpRight size={13} />{PERSONAL_INFO.philosophy}</span></div>
       </div>
     </div>
   </section>
