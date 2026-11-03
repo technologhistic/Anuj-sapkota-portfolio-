@@ -83,6 +83,9 @@ export const Hero: React.FC = () => {
   };
 
   useEffect(() => {
+    const titleLineDuration = 1100;
+    const titleLineStagger = 180;
+    const titleAnimationEnd = titleLineDuration + titleLineStagger;
     let titleFrame = 0;
     let titleRun = 0;
     let dropTriggered = false;
@@ -94,17 +97,19 @@ export const Hero: React.FC = () => {
       const start = titleStartTime || now;
       titleStartTime = start;
       titleLines.forEach((line, index) => {
-        const progress = Math.max(0, Math.min(1, (now - start - index * 90) / 600));
-        const eased = 1 - (1 - progress) ** 3;
+        const progress = Math.max(0, Math.min(1, (now - start - index * titleLineStagger) / titleLineDuration));
+        const eased = progress < 0.5
+          ? 4 * progress ** 3
+          : 1 - ((-2 * progress + 2) ** 3) / 2;
         line.style.opacity = `${eased}`;
         line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
       });
-      if (!dropTriggered && now - start >= 690) {
+      if (!dropTriggered && now - start >= titleAnimationEnd) {
         dropTriggered = true;
         window.dispatchEvent(new Event('portfolio:hero-name-complete'));
       }
       if (run !== titleRun) return;
-      if (now - start < 690) {
+      if (now - start < titleAnimationEnd) {
         titleFrame = requestAnimationFrame(animateTitle);
       } else {
         titleFrame = 0;
