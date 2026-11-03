@@ -21,13 +21,19 @@ const prefersReducedMotion = () => typeof window !== 'undefined'
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [welcomeOpen, setWelcomeOpen] = useState(true);
+  const welcomeOpenRef = useRef(true);
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
   const closeWelcome = useCallback(() => {
-    if (!welcomeOpen) return;
+    if (!welcomeOpenRef.current) return;
+    welcomeOpenRef.current = false;
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
-    requestAnimationFrame(() => window.dispatchEvent(new Event('portfolio:intro-start')));
+    // Wait for React to remove the overlay before starting the hero reveal.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.documentElement.dataset.portfolioIntroComplete = 'true';
+      window.dispatchEvent(new Event('portfolio:intro-start'));
+    }));
     if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
   }, []);
 
@@ -67,7 +73,7 @@ export default function App() {
       intro
         .from('.hero-kicker', { autoAlpha: 0, y: travel(16), duration: duration(0.55) })
         .from('.hero-metal-ring', { autoAlpha: 0, scale: reducedMotion ? 1 : 0.82, duration: duration(1.35), ease: 'power2.out' }, '-=0.86')
-        .from('.hero-copyline', { autoAlpha: 0, y: travel(22), duration: duration(0.65) }, '-=0.35')
+        .from('.hero-intro', { autoAlpha: 0, y: travel(22), duration: duration(0.65) }, '-=0.35')
         .from('.hero-actions > *', { autoAlpha: 0, y: travel(14), duration: duration(0.45), stagger: reducedMotion ? 0.025 : 0.08 }, '-=0.34')
         .from('.hero-portrait-wrap', { autoAlpha: 0, y: travel(32), rotateY: travel(-10), duration: duration(0.95) }, 0);
 

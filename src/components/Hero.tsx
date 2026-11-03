@@ -87,10 +87,7 @@ export const Hero: React.FC = () => {
     let titleRun = 0;
     let dropTriggered = false;
     const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
-    titleLines.forEach((line) => {
-      line.style.opacity = '0';
-      line.style.transform = 'translate3d(0, 110%, 0)';
-    });
+    let titleStarted = false;
 
     const animateTitle = (now: number) => {
       const run = titleRun;
@@ -102,7 +99,7 @@ export const Hero: React.FC = () => {
         line.style.opacity = `${eased}`;
         line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
       });
-      if (!dropTriggered && now - start >= 720) {
+      if (!dropTriggered && now - start >= 860) {
         dropTriggered = true;
         window.dispatchEvent(new Event('portfolio:hero-name-complete'));
       }
@@ -119,6 +116,8 @@ export const Hero: React.FC = () => {
     };
     let titleStartTime = 0;
     const startTitle = () => {
+      if (titleStarted) return;
+      titleStarted = true;
       titleRun += 1;
       if (titleFrame) cancelAnimationFrame(titleFrame);
       dropTriggered = false;
@@ -136,8 +135,14 @@ export const Hero: React.FC = () => {
 
     let lastTime = 0;
     const startDrop = () => { dropStartedRef.current = true; };
-    window.addEventListener('portfolio:intro-start', startTitle);
+    const onIntroStart = () => startTitle();
+    window.addEventListener('portfolio:intro-start', onIntroStart);
     window.addEventListener('portfolio:hero-name-complete', startDrop);
+    // Register listeners first: reduced motion can complete the reveal synchronously.
+    // The root flag covers a late mount after the intro event has already fired.
+    if (document.documentElement.dataset.portfolioIntroComplete === 'true' || !document.querySelector('.welcome-screen')) {
+      startTitle();
+    }
     const animate = (now: number) => {
       const spring = springRef.current;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
@@ -187,7 +192,7 @@ export const Hero: React.FC = () => {
     return () => {
       cancelAnimationFrame(frameRef.current);
       if (titleFrame) cancelAnimationFrame(titleFrame);
-      window.removeEventListener('portfolio:intro-start', startTitle);
+      window.removeEventListener('portfolio:intro-start', onIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };
   }, []);

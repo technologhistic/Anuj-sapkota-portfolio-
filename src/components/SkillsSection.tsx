@@ -34,10 +34,18 @@ export const SkillsSection: React.FC = () => {
     const progressPath = progressPathRef.current;
     const particle = particleRef.current;
     if (!scene || !path || !progressPath || !particle) return;
-    scene.classList.add('skills-timeline--animated');
     const heading = headingRef.current;
 
-    const pathLength = path.getTotalLength();
+    let pathLength = 0;
+    try {
+      pathLength = path.getTotalLength();
+      if (!Number.isFinite(pathLength) || pathLength <= 0) throw new Error('Invalid skills path length');
+    } catch (error) {
+      // SVG measurement can fail during early Android WebView/Chrome layout.
+      // Leave content in its visible CSS fallback state and report the failure.
+      console.error('Skills timeline measurement failed; showing all skill cards.', error);
+      return;
+    }
     progressPath.style.strokeDasharray = `${pathLength}`;
     progressPath.style.strokeDashoffset = `${pathLength}`;
     const nodePoints = NODE_ANCHORS.map((anchor) => {
@@ -82,7 +90,7 @@ export const SkillsSection: React.FC = () => {
       if (heading) {
         heading.style.opacity = `${headingValue.toFixed(3)}`;
         heading.style.transform = `translate3d(0, ${((1 - headingValue) * 22).toFixed(1)}px, 0)`;
-        heading.style.visibility = headingValue > .005 ? 'visible' : 'hidden';
+        heading.style.visibility = 'visible';
       }
       nodePoints.forEach((nodePoint, index) => {
         const node = nodeRefs.current[index];
@@ -104,7 +112,8 @@ export const SkillsSection: React.FC = () => {
 
     const calculateProgress = () => {
       const rect = scene.getBoundingClientRect();
-      return clamp((window.innerHeight * .82 - rect.top) / (rect.height - window.innerHeight * .18));
+      const travel = Math.max(rect.height - window.innerHeight * .18, 1);
+      return clamp((window.innerHeight * .82 - rect.top) / travel);
     };
 
     const calculateHeadingProgress = () => {
@@ -161,9 +170,11 @@ export const SkillsSection: React.FC = () => {
       progress = targetProgress;
       headingProgress = targetHeadingProgress;
       draw(progress, headingProgress);
+      scene.classList.add('skills-timeline--animated');
     }
     window.addEventListener('scroll', updateFromScroll, { passive: true });
     window.addEventListener('resize', updateFromScroll);
+    window.addEventListener('orientationchange', updateFromScroll);
     window.addEventListener('load', updateFromScroll);
     window.addEventListener('pageshow', updateFromScroll);
     prefersReducedMotion.addEventListener('change', handleMotionPreference);
@@ -173,6 +184,7 @@ export const SkillsSection: React.FC = () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', updateFromScroll);
       window.removeEventListener('resize', updateFromScroll);
+      window.removeEventListener('orientationchange', updateFromScroll);
       window.removeEventListener('load', updateFromScroll);
       window.removeEventListener('pageshow', updateFromScroll);
       prefersReducedMotion.removeEventListener('change', handleMotionPreference);
@@ -200,8 +212,8 @@ export const SkillsSection: React.FC = () => {
             <path ref={progressPathRef} className="skills-timeline__progress" d={SKILLS_PATH} />
           </svg>
           <span ref={particleRef} className="skills-timeline__particle" aria-hidden="true" />
-          {NODE_ANCHORS.map((_, index) => (
-            <span key={`node-${index}`} ref={(element) => { nodeRefs.current[index] = element; }} className="skills-timeline__node" aria-hidden="true">
+          {NODE_ANCHORS.map((anchor, index) => (
+            <span key={`node-${index}`} ref={(element) => { nodeRefs.current[index] = element; }} className="skills-timeline__node" style={{ left: `${anchor.x / 10}%`, top: `${anchor.y / 12}%` }} aria-hidden="true">
               <span />
             </span>
           ))}
@@ -210,6 +222,7 @@ export const SkillsSection: React.FC = () => {
             <article
               ref={(element) => { cardRefs.current[index] = element; }}
               className={`skill-item ${index % 2 === 0 ? 'skill-item--right' : 'skill-item--left'}`}
+              style={{ '--skill-node-y': `${NODE_ANCHORS[index].y / 12}%` } as React.CSSProperties}
               key={title}
               aria-label={`${title}. ${note}`}
             >
