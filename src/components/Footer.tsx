@@ -28,12 +28,6 @@ export const Footer: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
             <nav className="flex flex-wrap items-center gap-8 text-[11px] uppercase tracking-[0.2em] text-[#C5C7CC]">
-              <a href="#projects" className="hover:text-[#F1F0EC] transition-colors">
-                Works
-              </a>
-              <a href="#case-studies" className="hover:text-[#F1F0EC] transition-colors">
-                Case Studies
-              </a>
               <a href="#about" className="hover:text-[#F1F0EC] transition-colors">
                 About
               </a>

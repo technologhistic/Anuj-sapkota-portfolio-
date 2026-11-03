@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowDown, FileDown, ExternalLink, MapPin, Clock, Sparkles } from 'lucide-react';
+import { FileDown, ExternalLink, MapPin, Clock, Sparkles } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { PERSONAL_INFO } from '../data/portfolioData';
 import anujPortrait from '../assets/images/anuj_sapkota_portrait.png';
@@ -164,24 +164,13 @@ export const Hero: React.FC<HeroProps> = ({ onOpenResume }) => {
               </div>
             </div>
 
-            {/* Actions: Explore Projects and Download Résumé with Micro-interactions */}
+            {/* Download Résumé action */}
             <motion.div
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col sm:flex-row sm:items-center gap-3.5 sm:gap-5 pt-4 sm:pt-6"
             >
-              <motion.a
-                href="#projects"
-                whileHover={shouldReduceMotion ? {} : { y: -2, scale: 1.01 }}
-                whileTap={shouldReduceMotion ? {} : { y: 0 }}
-                transition={{ duration: 0.15 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-7 py-4 min-h-[44px] text-xs uppercase tracking-wider font-mono font-medium text-[#090A0C] bg-[#F1F0EC] hover:bg-white transition-all rounded-sm shadow-md hover:shadow-xl group"
-              >
-                <span>Explore Projects</span>
-                <ArrowDown className="w-3.5 h-3.5 group-hover:translate-y-1 transition-transform" />
-              </motion.a>
-
               <motion.button
                 onClick={onOpenResume}
                 whileHover={shouldReduceMotion ? {} : { y: -2 }}

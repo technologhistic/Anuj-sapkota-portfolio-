@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Award, BookOpen, Layers } from 'lucide-react';
+import { GraduationCap, Award, BookOpen } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
 import { EDUCATION } from '../data/portfolioData';
 
@@ -84,19 +84,6 @@ export const EducationSection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Capstone Research Project */}
-              <div className="p-8 bg-[#090A0C]/75 border border-white/[0.08] rounded-sm space-y-3">
-                <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#858997] flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-[#F1F0EC]" />
-                  <span>Senior Capstone Thesis &amp; Defense</span>
-                </span>
-                <h4 className="text-xl sm:text-2xl font-serif text-[#F1F0EC]">
-                  {edu.capstone.title}
-                </h4>
-                <p className="text-sm sm:text-base text-[#858997] font-light leading-[1.85] max-w-3xl">
-                  {edu.capstone.description}
-                </p>
-              </div>
             </motion.div>
           ))}
         </div>

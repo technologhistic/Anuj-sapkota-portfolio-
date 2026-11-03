@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigation } from './components/Navigation';
 import { Hero } from './components/Hero';
-import { SelectedProjects } from './components/SelectedProjects';
-import { CaseStudiesSection } from './components/CaseStudiesSection';
 import { AboutSection } from './components/AboutSection';
 import { SkillsSection } from './components/SkillsSection';
 import { EducationSection } from './components/EducationSection';
@@ -10,12 +8,9 @@ import { AchievementsSection } from './components/AchievementsSection';
 import { ResumeSection } from './components/ResumeSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
-import { CaseStudyModal } from './components/CaseStudyModal';
 import { ResumeModal } from './components/ResumeModal';
-import { Project } from './data/portfolioData';
 
 export default function App() {
-  const [activeProjectForModal, setActiveProjectForModal] = useState<Project | null>(null);
   const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
 
@@ -23,17 +18,16 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (activeProjectForModal) setActiveProjectForModal(null);
         if (isResumeModalOpen) setIsResumeModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeProjectForModal, isResumeModalOpen]);
+  }, [isResumeModalOpen]);
 
   // Section observer for top bar active highlighting
   useEffect(() => {
-    const sectionIds = ['hero', 'projects', 'case-studies', 'about', 'skills', 'education', 'achievements', 'resume', 'contact'];
+    const sectionIds = ['hero', 'about', 'skills', 'education', 'achievements', 'resume', 'contact'];
     const observers: IntersectionObserver[] = [];
 
     sectionIds.forEach((id) => {
@@ -73,13 +67,7 @@ export default function App() {
         {/* 1. Hero */}
         <Hero onOpenResume={() => setIsResumeModalOpen(true)} />
 
-        {/* 2. Selected Projects */}
-        <SelectedProjects onSelectProject={(project) => setActiveProjectForModal(project)} />
-
-        {/* 3. Detailed Project Case Studies */}
-        <CaseStudiesSection />
-
-        {/* 4. About Me */}
+        {/* About Me */}
         <AboutSection />
 
         {/* 5. Technical Skills */}
@@ -100,12 +88,6 @@ export default function App() {
 
       {/* Footer */}
       <Footer />
-
-      {/* Interactive Case Study Modal */}
-      <CaseStudyModal
-        project={activeProjectForModal}
-        onClose={() => setActiveProjectForModal(null)}
-      />
 
       {/* Interactive Printable Résumé Modal */}
       <ResumeModal

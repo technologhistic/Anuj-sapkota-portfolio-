@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Printer, Download, Copy, Check, FileText, ExternalLink, Mail, MapPin } from 'lucide-react';
-import { PERSONAL_INFO, PROJECTS, SKILL_CATEGORIES, EDUCATION, ACHIEVEMENTS } from '../data/portfolioData';
+import { PERSONAL_INFO, SKILL_CATEGORIES, EDUCATION, ACHIEVEMENTS } from '../data/portfolioData';
 
 interface ResumeModalProps {
   isOpen: boolean;
@@ -34,20 +34,6 @@ ${EDUCATION[0].degree}
 ${EDUCATION[0].institution}, ${EDUCATION[0].location} (${EDUCATION[0].period})
 Grade: ${EDUCATION[0].grade} | ${EDUCATION[0].honors}
 Relevant Coursework: ${EDUCATION[0].coreCourses.join(', ')}
-
-FEATURED PROJECTS
-1. ${PROJECTS[0].title} - ${PROJECTS[0].subtitle}
-Tech: ${PROJECTS[0].techStack.join(', ')}
-${PROJECTS[0].summary}
-Impact: ${PROJECTS[0].caseStudy.impact}
-
-2. ${PROJECTS[1].title} - ${PROJECTS[1].subtitle}
-Tech: ${PROJECTS[1].techStack.join(', ')}
-${PROJECTS[1].summary}
-
-3. ${PROJECTS[2].title} - ${PROJECTS[2].subtitle}
-Tech: ${PROJECTS[2].techStack.join(', ')}
-${PROJECTS[2].summary}
 
 TECHNICAL SKILLS
 ${SKILL_CATEGORIES.map((c) => `${c.title}: ${c.skills.map((s) => s.name).join(', ')}`).join('\n')}
@@ -184,33 +170,6 @@ ${ACHIEVEMENTS.map((a) => `- ${a.title} (${a.year}): ${a.description}`).join('\n
                     <span className="text-[#858997] print:text-neutral-700 text-xs leading-relaxed block font-light">
                       {cat.skills.map((s) => s.name).join(' · ')}
                     </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Selected Projects */}
-            <div className="space-y-4">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-[#F1F0EC] print:text-black border-b border-white/[0.08] print:border-neutral-300 pb-1">
-                Featured Engineering Projects
-              </h2>
-              <div className="space-y-4">
-                {PROJECTS.map((p) => (
-                  <div key={p.id} className="space-y-1">
-                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between text-xs">
-                      <span className="font-semibold text-[#F1F0EC] print:text-black text-sm">
-                        {p.title} — <span className="font-normal text-[#C5C7CC] print:text-neutral-700">{p.subtitle}</span>
-                      </span>
-                      <span className="font-mono text-[#858997] print:text-neutral-600 text-[11px]">
-                        {p.year}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#858997] print:text-neutral-700 leading-relaxed">
-                      {p.summary}
-                    </p>
-                    <div className="text-[11px] font-mono text-[#C5C7CC] print:text-neutral-600">
-                      Stack: {p.techStack.join(' · ')}
-                    </div>
                   </div>
                 ))}
               </div>

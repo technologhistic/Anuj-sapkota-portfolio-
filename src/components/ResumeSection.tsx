@@ -70,7 +70,7 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="text-[#F1F0EC]">✓</span>
-                  <span>Verifiable capstone &amp; honors</span>
+                  <span>Academic honors</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="text-[#F1F0EC]">✓</span>

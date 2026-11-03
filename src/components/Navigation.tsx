@@ -25,8 +25,6 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenResume, activeSect
   }, []);
 
   const navLinks = [
-    { label: 'Works', href: '#projects' },
-    { label: 'Case Studies', href: '#case-studies' },
     { label: 'About', href: '#about' },
     { label: 'Skills', href: '#skills' },
     { label: 'Education', href: '#education' },
@@ -149,13 +147,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenResume, activeSect
           >
             <div className="flex flex-col space-y-1">
               {[
-                { label: '01 // Selected Works', href: '#projects' },
-                { label: '02 // Case Studies', href: '#case-studies' },
-                { label: '03 // Ethos & About', href: '#about' },
-                { label: '04 // Skills Matrix', href: '#skills' },
-                { label: '05 // Education', href: '#education' },
-                { label: '06 // Achievements', href: '#achievements' },
-                { label: '07 // Initiate Contact', href: '#contact' },
+                { label: '01 // Ethos & About', href: '#about' },
+                { label: '02 // Skills Matrix', href: '#skills' },
+                { label: '03 // Education', href: '#education' },
+                { label: '04 // Achievements', href: '#achievements' },
+                { label: '05 // Initiate Contact', href: '#contact' },
               ].map((link) => (
                 <a
                   key={link.label}
