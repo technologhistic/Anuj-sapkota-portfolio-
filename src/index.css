@@ -104,7 +104,9 @@ p { text-wrap: pretty; }
 .hero-bottomline a { color: #aaa; letter-spacing: 0; text-transform: none; }
 .hero-bottomline a:hover { color: var(--white); }
 .hero-portrait-wrap { position: relative; z-index: 2; width: 100%; max-width: 440px; min-height: 520px; margin-inline: auto; }
-.portrait-pendulum { --swing-angle: 0deg; position: absolute; z-index: 1; top: 0; left: 50%; width: 0; height: 0; transform: rotate(var(--swing-angle)); transform-origin: 0 0; will-change: transform; }
+.portrait-pendulum { --swing-angle: 0deg; --drop-y: -800px; position: absolute; z-index: 1; top: 0; left: 50%; width: 0; height: 0; transform: translateY(var(--drop-y)) rotate(var(--swing-angle)); transform-origin: 0 0; will-change: transform; }
+.portrait-pendulum--free { position: fixed; z-index: 150; top: var(--global-top); left: var(--global-left); transform: rotate(var(--swing-angle)); }
+.portrait-pendulum--dragging { z-index: 150; }
 .portrait-lanyard-system { position: absolute; inset: 0; }
 .portrait-strap { position: absolute; top: 0; left: -9px; width: 18px; height: 9rem; border: 1px solid #777; border-radius: 0 0 5px 5px; background: linear-gradient(90deg, #3b3b3b, #e4e4e4 48%, #858585 56%, #303030); box-shadow: 0 2px 12px rgba(255,255,255,.11); }
 .portrait-clip { position: absolute; top: calc(9rem - 6px); left: -12px; z-index: 2; width: 24px; height: 23px; border: 1px solid #aaa; border-radius: 4px 4px 7px 7px; background: linear-gradient(110deg, #494949, #d5d5d5 47%, #696969); box-shadow: 0 4px 9px rgba(0,0,0,.48), inset 0 1px rgba(255,255,255,.52); }
@@ -124,8 +126,6 @@ p { text-wrap: pretty; }
 .portrait-card__identity h2 { margin-top: .18rem; color: var(--white); font: 500 1.85rem/1.05 var(--font-serif); letter-spacing: -.035em; }
 .portrait-card__identity > p:last-child { margin-top: .35rem; color: #a6a6a6; font-size: .68rem; }
 .portrait-card__foot { display: flex; min-height: 32px; align-items: center; justify-content: space-between; gap: .6rem; margin-top: auto; padding: 8px 5px 0; border-top: 1px solid #3a3a3a; color: #b5b5b5; font: 500 .49rem var(--font-mono); letter-spacing: .08em; }
-.motion-toggle { position: absolute; z-index: 4; right: 0; bottom: -.2rem; display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-width: 120px; min-height: 44px; padding: .55rem .75rem; border: 1px solid #343434; color: #aaa; background: var(--secondary); font: 500 .54rem var(--font-mono); letter-spacing: .09em; }
-.motion-toggle:hover { color: var(--white); border-color: #888; }
 .portrait-caption { position: absolute; right: calc(100% + 24px); bottom: 28px; width: 138px; color: #8c8c8c; font: .63rem var(--font-mono); text-align: right; }
 .portrait-caption span { display: block; margin-top: .3rem; color: #5e5e5e; }
 .hero-scene { position: absolute; inset: 76px 0 0; overflow: hidden; pointer-events: none; perspective: 1000px; }
@@ -335,7 +335,6 @@ p { text-wrap: pretty; }
   .hero-portrait-wrap { width: 82%; min-height: 510px; }
   .portrait-card { width: min(18.5rem, 70vw); }
   .portrait-caption { right: auto; bottom: -2.6rem; left: 0; width: auto; font-size: .55rem; text-align: left; }
-  .motion-toggle { right: 0; bottom: -2.9rem; }
   .skills-grid { grid-template-columns: 1fr; }
   .skill-item { min-height: 185px; }
   .contact-fields { grid-template-columns: 1fr; }

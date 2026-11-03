@@ -73,6 +73,10 @@ export default function App() {
       if (!reducedMotion) {
         intro.from('.hero-script text', { strokeDashoffset: 260, duration: 1.05, ease: 'power2.inOut' }, '-=0.7');
       }
+      intro.call(() => {
+        gsap.set('.hero-portrait-wrap', { clearProps: 'transform' });
+        window.dispatchEvent(new Event('portfolio:intro-complete'));
+      });
 
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
         if (reducedMotion) {

@@ -1,31 +1,36 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowUpRight, Pause, Play } from 'lucide-react';
+import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { CONTACT_EMAIL, PERSONAL_INFO } from '../data/portfolioData';
 
 type CardSpring = {
   x: number; y: number; z: number; vx: number; vy: number; vz: number;
+  dropY: number; dropVelocity: number;
   inputX: number; inputY: number; lightX: number; lightY: number;
   targetLightX: number; targetLightY: number;
 };
 
+type DragOrigin = { pointerX: number; pointerY: number; left: number; top: number };
+
 export const Hero: React.FC = () => {
-  const [motionPaused, setMotionPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isFree, setIsFree] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
   const pendulumRef = useRef<HTMLDivElement>(null);
   const springRef = useRef<CardSpring>({
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, inputX: 0, inputY: 0,
+    dropY: -800, dropVelocity: 0,
     lightX: 50, lightY: 50, targetLightX: 50, targetLightY: 50,
   });
-  const pausedRef = useRef(false);
   const draggingRef = useRef(false);
+  const dropStartedRef = useRef(false);
+  const dragOriginRef = useRef<DragOrigin | null>(null);
   const frameRef = useRef(0);
 
   const moveLight = (clientX: number, clientY: number) => {
-    const stage = stageRef.current;
-    if (!stage || pausedRef.current) return;
-    const rect = stage.getBoundingClientRect();
+    const surface = isFree ? cardRef.current : stageRef.current;
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
     const y = Math.max(-1, Math.min(1, ((clientY - rect.top) / rect.height) * 2 - 1));
     const spring = springRef.current;
@@ -36,10 +41,32 @@ export const Hero: React.FC = () => {
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
-    if (event.pointerType !== 'touch') return;
+    if (!dropStartedRef.current) return;
+    const cardRect = event.currentTarget.getBoundingClientRect();
+    const origin = {
+      pointerX: event.clientX,
+      pointerY: event.clientY,
+      left: cardRect.left + cardRect.width / 2,
+      top: cardRect.top - 144,
+    };
+    dragOriginRef.current = origin;
+    const pendulum = pendulumRef.current;
+    pendulum?.style.setProperty('--global-left', `${origin.left}px`);
+    pendulum?.style.setProperty('--global-top', `${origin.top}px`);
     draggingRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
+    setIsFree(true);
+    moveLight(event.clientX, event.clientY);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (!draggingRef.current) return;
+    const origin = dragOriginRef.current;
+    const pendulum = pendulumRef.current;
+    if (!origin || !pendulum) return;
+    pendulum.style.setProperty('--global-left', `${origin.left + event.clientX - origin.pointerX}px`);
+    pendulum.style.setProperty('--global-top', `${origin.top + event.clientY - origin.pointerY}px`);
     moveLight(event.clientX, event.clientY);
   };
 
@@ -69,23 +96,29 @@ export const Hero: React.FC = () => {
 
   useEffect(() => {
     let lastTime = 0;
+    const startDrop = () => { dropStartedRef.current = true; };
+    window.addEventListener('portfolio:intro-complete', startDrop);
     const animate = (now: number) => {
       const spring = springRef.current;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
       lastTime = now;
       const time = now / 1000;
-      const idleScale = pausedRef.current ? 0 : 1;
-      const idleX = Math.sin(time * 1.1) * 1.35 * idleScale;
-      const idleY = Math.sin(time * 0.82 + 0.7) * 1.8 * idleScale;
-      const idleZ = Math.sin(time * 0.92) * 2.1 * idleScale;
-      const targetX = idleX + (pausedRef.current ? 0 : spring.inputX);
-      const targetY = idleY + (pausedRef.current ? 0 : spring.inputY);
-      const targetZ = idleZ + (pausedRef.current ? 0 : spring.inputY * 0.12);
+      const idleX = Math.sin(time * 1.1) * 1.35;
+      const idleY = Math.sin(time * 0.82 + 0.7) * 1.8;
+      const idleZ = Math.sin(time * 0.92) * 2.1;
+      const targetX = idleX + spring.inputX;
+      const targetY = idleY + spring.inputY;
+      const targetZ = idleZ + spring.inputY * 0.12;
       const stiffness = (draggingRef.current ? 0.13 : 0.075) * dt;
       const damping = Math.pow(0.78, dt);
       spring.vx = (spring.vx + (targetX - spring.x) * stiffness) * damping;
       spring.vy = (spring.vy + (targetY - spring.y) * stiffness) * damping;
       spring.vz = (spring.vz + (targetZ - spring.z) * stiffness) * damping;
+      if (dropStartedRef.current) {
+        const dropStiffness = 0.045 * dt;
+        spring.dropVelocity = (spring.dropVelocity + (0 - spring.dropY) * dropStiffness) * Math.pow(0.76, dt);
+        spring.dropY += spring.dropVelocity;
+      }
       spring.x += spring.vx;
       spring.y += spring.vy;
       spring.z += spring.vz;
@@ -102,26 +135,16 @@ export const Hero: React.FC = () => {
       }
       if (pendulumRef.current) {
         pendulumRef.current.style.setProperty('--swing-angle', `${spring.z.toFixed(2)}deg`);
+        pendulumRef.current.style.setProperty('--drop-y', `${spring.dropY.toFixed(1)}px`);
       }
       frameRef.current = requestAnimationFrame(animate);
     };
     frameRef.current = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frameRef.current);
+      window.removeEventListener('portfolio:intro-complete', startDrop);
     };
   }, []);
-
-  const toggleMotion = () => setMotionPaused((paused) => {
-    const next = !paused;
-    pausedRef.current = next;
-    if (next) {
-      springRef.current.inputX = 0;
-      springRef.current.inputY = 0;
-      springRef.current.targetLightX = 50;
-      springRef.current.targetLightY = 50;
-    }
-    return next;
-  });
 
   return (
     <section id="home" className="hero-section" aria-labelledby="hero-title">
@@ -155,12 +178,10 @@ export const Hero: React.FC = () => {
           onPointerMove={(event) => {
             if (event.pointerType !== 'touch' || draggingRef.current) moveLight(event.clientX, event.clientY);
           }}
-          onPointerLeave={releasePointer}
-          onPointerCancel={releasePointer}
         >
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
-          <div className="portrait-pendulum" ref={pendulumRef}>
+          <div className={`portrait-pendulum${isFree ? ' portrait-pendulum--free' : ''}${isDragging ? ' portrait-pendulum--dragging' : ''}`} ref={pendulumRef}>
             <div className="portrait-lanyard-system">
               <div className="portrait-strap" aria-hidden="true" />
               <div className="portrait-clip" aria-hidden="true" />
@@ -171,9 +192,11 @@ export const Hero: React.FC = () => {
               aria-label="Interactive ID card for Anuj Sapkota. Move the pointer or touch and drag the card to tilt it. Use arrow keys to tilt and Escape to center it."
               tabIndex={0}
               onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
               onPointerUp={releasePointer}
               onPointerCancel={releasePointer}
               onLostPointerCapture={releasePointer}
+              onPointerLeave={() => { if (!draggingRef.current) releasePointer(); }}
               onKeyDown={handleKeyDown}
             >
               <div className="portrait-slot" aria-hidden="true" />
@@ -192,10 +215,6 @@ export const Hero: React.FC = () => {
               <div className="portrait-card__foot"><span>ID 001</span><span>+2 CS</span></div>
             </article>
           </div>
-          <button className="motion-toggle" type="button" onClick={toggleMotion} aria-label={motionPaused ? 'Resume card motion' : 'Pause card motion'} aria-pressed={motionPaused}>
-            {motionPaused ? <Play size={13} aria-hidden="true" /> : <Pause size={13} aria-hidden="true" />}
-            <span>{motionPaused ? 'RESUME' : 'PAUSE MOTION'}</span>
-          </button>
           <p className="portrait-caption">A work in progress <span>— 2026</span></p>
         </div>
       </div>
