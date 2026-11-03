@@ -75,11 +75,8 @@ export const SkillsSection: React.FC = () => {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let progress = 0;
-    let targetProgress = 0;
     let headingProgress = 0;
-    let targetHeadingProgress = 0;
-    let frame = 0;
-    let lastTime = 0;
+    let scrollFrame = 0;
 
     const draw = (value: number, headingValue: number) => {
       const distance = pathLength * value;
@@ -112,9 +109,10 @@ export const SkillsSection: React.FC = () => {
 
     const calculateProgress = () => {
       const rect = scene.getBoundingClientRect();
-      // Start as the scene enters the viewport and finish after its bottom exits.
-      // This gives the particle and cards the full scroll distance to travel down.
-      return clamp((window.innerHeight - rect.top) / (rect.height + window.innerHeight));
+      const start = window.innerHeight * 0.85;
+      const end = -scene.offsetHeight + window.innerHeight * 0.2;
+
+      return clamp((start - rect.top) / (start - end));
     };
 
     const calculateHeadingProgress = () => {
@@ -123,34 +121,26 @@ export const SkillsSection: React.FC = () => {
       return clamp((window.innerHeight * .9 - rect.top) / Math.max(rect.height + window.innerHeight * .1, 1));
     };
 
-    const animate = (now: number) => {
-      frame = 0;
-      const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
-      lastTime = now;
-      const ease = 1 - Math.exp(-dt / 48);
-      progress += (targetProgress - progress) * ease;
-      headingProgress += (targetHeadingProgress - headingProgress) * ease;
-      if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
-      if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
-      draw(progress, headingProgress);
-      if (progress !== targetProgress || headingProgress !== targetHeadingProgress) frame = requestAnimationFrame(animate);
-    };
-
     const updateFromScroll = () => {
       if (prefersReducedMotion.matches) {
         showStaticPath();
         return;
       }
-      targetProgress = calculateProgress();
-      targetHeadingProgress = calculateHeadingProgress();
-      if (!frame) frame = requestAnimationFrame(animate);
+      if (scrollFrame) return;
+
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        progress = calculateProgress();
+        headingProgress = calculateHeadingProgress();
+        draw(progress, headingProgress);
+      });
     };
 
     const showStaticPath = () => {
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
-      progress = targetProgress = 1;
-      headingProgress = targetHeadingProgress = 1;
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+      scrollFrame = 0;
+      progress = 1;
+      headingProgress = 1;
       draw(1, 1);
       particle.style.opacity = '0';
       nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
@@ -166,10 +156,8 @@ export const SkillsSection: React.FC = () => {
 
     if (prefersReducedMotion.matches) showStaticPath();
     else {
-      targetProgress = calculateProgress();
-      targetHeadingProgress = calculateHeadingProgress();
-      progress = targetProgress;
-      headingProgress = targetHeadingProgress;
+      progress = calculateProgress();
+      headingProgress = calculateHeadingProgress();
       draw(progress, headingProgress);
       scene.classList.add('skills-timeline--animated');
     }
@@ -178,11 +166,12 @@ export const SkillsSection: React.FC = () => {
     window.addEventListener('orientationchange', updateFromScroll);
     window.addEventListener('load', updateFromScroll);
     window.addEventListener('pageshow', updateFromScroll);
+    updateFromScroll();
     prefersReducedMotion.addEventListener('change', handleMotionPreference);
 
     return () => {
       scene.classList.remove('skills-timeline--animated');
-      if (frame) cancelAnimationFrame(frame);
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
       window.removeEventListener('scroll', updateFromScroll);
       window.removeEventListener('resize', updateFromScroll);
       window.removeEventListener('orientationchange', updateFromScroll);
