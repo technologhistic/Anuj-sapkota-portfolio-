@@ -175,9 +175,13 @@ p { text-wrap: pretty; }
 /* Project previews */
 .section--projects { background: #0a0a0a; }
 .section-header--projects { margin-bottom: 2.8rem; }
-.project-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.project-card { display: flex; min-width: 0; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(160deg, #171717, #0e0e0e 65%); transform-style: preserve-3d; transition: border-color .25s ease, transform .35s cubic-bezier(.2,.75,.2,1), box-shadow .35s ease; }
-.project-card:hover { border-color: #666; box-shadow: 0 25px 60px rgba(0,0,0,.25); transform: perspective(1000px) rotateX(1deg) rotateY(-1deg) translateY(-4px); }
+.project-orbit-stage { position: relative; width: calc(100% + var(--gutter) * 2); height: clamp(640px, 65vw, 760px); margin: 0 calc(var(--gutter) * -1); overflow: visible; perspective: 1400px; transform-style: preserve-3d; isolation: isolate; touch-action: pan-y; user-select: none; cursor: grab; }
+.project-orbit-stage:active { cursor: grabbing; }
+.project-orbit-stage:focus-visible { outline: 1px solid #777; outline-offset: 5px; }
+.project-card { position: absolute; top: 50%; left: 50%; display: flex; width: min(320px, 78vw); min-width: 0; max-height: 500px; flex-direction: column; overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(160deg, #171717, #0e0e0e 65%); transform-style: preserve-3d; transform-origin: center; transition: border-color .25s ease, box-shadow .35s ease; will-change: transform, opacity, filter; }
+.project-card::before { position: absolute; z-index: 2; inset: 0; border-radius: inherit; content: ''; background: radial-gradient(ellipse at var(--orbit-light-x, 50%) var(--orbit-light-y, 50%), rgba(255,255,255,.2), rgba(200,215,255,.045) 28%, transparent 68%); mix-blend-mode: screen; pointer-events: none; }
+.project-card > * { position: relative; z-index: 1; }
+.project-card:hover { border-color: #777; box-shadow: 0 25px 60px rgba(0,0,0,.4); }
 .project-image { position: relative; display: block; aspect-ratio: 1.48; overflow: hidden; background: #111; }
 .project-image img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transition: transform .55s cubic-bezier(.2,.75,.2,1), filter .4s ease; filter: saturate(.76); }
 .project-image:hover img, .project-card:hover .project-image img { transform: scale(1.035); filter: saturate(1); }
@@ -205,8 +209,6 @@ p { text-wrap: pretty; }
 .project-drawer h3 { margin-top: .55rem; color: #fff; font: 500 clamp(2.4rem, 5vw, 4rem)/.96 var(--font-sans); letter-spacing: -.07em; }
 .project-drawer__description { margin-top: 1.15rem; color: #b7b7b7; font-size: .9rem; line-height: 1.85; }
 .project-drawer__links { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 2rem; }
-.project-card--featured { grid-column: auto; display: flex; }
-.project-card--featured .project-image { height: auto; min-height: 0; aspect-ratio: 1.48; }
 
 /* Education and learning journey */
 .section--journey { background: var(--secondary); }
@@ -271,7 +273,6 @@ p { text-wrap: pretty; }
   .portrait-caption { right: calc(100% + 5px); }
   .primary-nav { gap: .9rem; }
   .primary-nav a { font-size: .67rem; }
-  .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 720px) {
@@ -307,8 +308,7 @@ p { text-wrap: pretty; }
   .skills-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .skill-item { min-height: 215px; }
   .language-ledger { grid-template-columns: 1fr; gap: 1.1rem; }
-  .project-grid { grid-template-columns: 1fr; }
-  .project-card--featured .project-image { width: 100%; min-height: 0; aspect-ratio: 1.4; }
+  .project-orbit-stage { height: 660px; }
   .project-details > p { min-height: 0; }
   .project-drawer-layer { align-items: flex-end; }
   .project-drawer { width: 100%; min-height: 0; max-height: min(82svh, 720px); padding-top: .55rem; border-top: 1px solid #474747; border-left: 0; border-radius: 20px 20px 0 0; transform-origin: center bottom; }
