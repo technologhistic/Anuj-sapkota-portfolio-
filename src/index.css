@@ -53,6 +53,7 @@ p { text-wrap: pretty; }
 .welcome-name { display: flex; align-items: center; justify-content: center; gap: clamp(.04em, 1vw, .16em); color: #f4f4f4; font: 300 clamp(6.5rem, 23vw, 16rem)/.92 'Playfair Display', var(--font-serif); letter-spacing: -.065em; }
 .welcome-letter { display: block; text-shadow: 0 0 34px rgba(255,255,255,.13); will-change: transform, opacity, filter; }
 .welcome-rule { width: clamp(5rem, 12vw, 9rem); height: 1px; margin-top: clamp(1.5rem, 4vh, 2.8rem); background: linear-gradient(90deg, transparent, #dedede, transparent); transform-origin: center; }
+.welcome-caption { margin-top: 18px; color: #9a9a9a; font: 500 .625rem/1.5 var(--font-mono); letter-spacing: .5em; text-indent: .5em; }
 .welcome-skip { position: absolute; z-index: 2; bottom: max(1.75rem, env(safe-area-inset-bottom)); left: 50%; display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-width: 44px; min-height: 44px; padding: .55rem .85rem; border: 1px solid #363636; border-radius: 999px; color: #bcbcbc; background: rgba(14,14,14,.72); font: 500 .63rem var(--font-mono); letter-spacing: .05em; transform: translateX(-50%); transition: color .2s ease, border-color .2s ease, background .2s ease; }
 .welcome-skip:hover { border-color: #8a8a8a; color: #fff; background: #171717; }
 .portfolio-content[inert] { user-select: none; }
