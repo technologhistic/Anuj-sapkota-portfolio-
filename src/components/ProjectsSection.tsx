@@ -1,16 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUpRight, Github, X } from 'lucide-react';
 import { PROJECTS, type PortfolioProject } from '../data/portfolioData';
+
+type DrawerMotion = { x: number; y: number; vx: number; vy: number; alpha: number; alphaVelocity: number };
 
 export const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
   const dragStart = useRef<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+  const backdropRef = useRef<HTMLButtonElement>(null);
+  const drawerMotionRef = useRef<DrawerMotion>({ x: 0, y: 0, vx: 0, vy: 0, alpha: 0, alphaVelocity: 0 });
 
   const closeDrawer = () => {
-    setSelectedProject(null);
-    setDragOffset(0);
+    if (selectedProject) setIsClosing(true);
   };
 
   useEffect(() => {
@@ -25,6 +30,71 @@ export const ProjectsSection: React.FC = () => {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [selectedProject]);
+
+  useLayoutEffect(() => {
+    if (!selectedProject || !drawerRef.current || !backdropRef.current) return;
+    const drawer = drawerRef.current;
+    const backdrop = backdropRef.current;
+    const mobile = window.matchMedia('(max-width: 720px)').matches;
+    const motion = drawerMotionRef.current;
+    const travel = mobile ? drawer.offsetHeight + 40 : drawer.offsetWidth + 40;
+
+    if (!isClosing) {
+      motion.x = mobile ? 0 : travel;
+      motion.y = mobile ? travel : 0;
+      motion.vx = motion.vy = motion.alphaVelocity = 0;
+      motion.alpha = 0;
+      drawer.style.setProperty('--drawer-spring-x', `${motion.x}px`);
+      drawer.style.setProperty('--drawer-spring-y', `${motion.y}px`);
+      drawer.style.setProperty('--drawer-scale', '.985');
+      backdrop.style.setProperty('--drawer-backdrop-alpha', '0');
+    }
+
+    const destinationX = isClosing && !mobile ? drawer.offsetWidth + 48 : 0;
+    const destinationY = isClosing && mobile ? drawer.offsetHeight + 48 : 0;
+    const destinationAlpha = isClosing ? 0 : 1;
+    let frame = 0;
+    let previousTime = 0;
+
+    const animate = (now: number) => {
+      const dt = previousTime ? Math.min(2, Math.max(.5, (now - previousTime) / 16.667)) : 1;
+      previousTime = now;
+      const damping = Math.pow(.68, dt);
+      motion.vx = (motion.vx + (destinationX - motion.x) * .14 * dt) * damping;
+      motion.vy = (motion.vy + (destinationY - motion.y) * .14 * dt) * damping;
+      motion.alphaVelocity = (motion.alphaVelocity + (destinationAlpha - motion.alpha) * .2 * dt) * damping;
+      motion.x += motion.vx;
+      motion.y += motion.vy;
+      motion.alpha = Math.max(0, Math.min(1, motion.alpha + motion.alphaVelocity));
+      drawer.style.setProperty('--drawer-spring-x', `${motion.x.toFixed(2)}px`);
+      drawer.style.setProperty('--drawer-spring-y', `${motion.y.toFixed(2)}px`);
+      const progress = Math.max(0, Math.min(1, 1 - Math.abs(mobile ? motion.y : motion.x) / travel));
+      drawer.style.setProperty('--drawer-scale', `${(.985 + progress * .015).toFixed(4)}`);
+      backdrop.style.setProperty('--drawer-backdrop-alpha', `${motion.alpha.toFixed(3)}`);
+
+      const settled = Math.abs(destinationX - motion.x) < .45
+        && Math.abs(destinationY - motion.y) < .45
+        && Math.abs(motion.vx) < .45
+        && Math.abs(motion.vy) < .45
+        && Math.abs(destinationAlpha - motion.alpha) < .01;
+      if (settled) {
+        drawer.style.setProperty('--drawer-spring-x', `${destinationX}px`);
+        drawer.style.setProperty('--drawer-spring-y', `${destinationY}px`);
+        drawer.style.setProperty('--drawer-scale', '1');
+        backdrop.style.setProperty('--drawer-backdrop-alpha', `${destinationAlpha}`);
+        if (isClosing) {
+          setSelectedProject(null);
+          setIsClosing(false);
+          setDragOffset(0);
+        }
+        return;
+      }
+      frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [selectedProject, isClosing]);
 
   const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse') return;
@@ -64,7 +134,7 @@ export const ProjectsSection: React.FC = () => {
                 {project.technologies.length ? project.technologies.map((item) => <li key={item}>{item}</li>) : <li>Technology details not listed</li>}
               </ul>
               <div className="project-links">
-                <button className="project-details-button" type="button" onClick={() => setSelectedProject(project)}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
+                <button className="project-details-button" type="button" onClick={() => { setIsClosing(false); setSelectedProject(project); }}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
                 <a href={project.repository} target="_blank" rel="noreferrer"><Github size={15} aria-hidden="true" />Repository <ArrowUpRight size={13} aria-hidden="true" /></a>
                 {project.demo && <a href={project.demo} target="_blank" rel="noreferrer">Live demo{project.demoNote ? ` · ${project.demoNote}` : ''} <ArrowUpRight size={13} aria-hidden="true" /></a>}
               </div>
@@ -75,8 +145,8 @@ export const ProjectsSection: React.FC = () => {
       <p className="project-source-note">Project previews link to their published demo or repository. Technologies are shown only where repository metadata or source identifies them.</p>
     </div>
     {selectedProject && <div className="project-drawer-layer" role="presentation">
-      <button className="project-drawer-backdrop" type="button" aria-label="Close project details" onClick={closeDrawer} />
-      <aside className="project-drawer" role="dialog" aria-modal="true" aria-labelledby="project-drawer-title" style={{ '--drawer-drag': `${dragOffset}px` } as React.CSSProperties}>
+      <button ref={backdropRef} className="project-drawer-backdrop" type="button" aria-label="Close project details" onClick={closeDrawer} />
+      <aside ref={drawerRef} className="project-drawer" role="dialog" aria-modal="true" aria-labelledby="project-drawer-title" style={{ '--drawer-drag': `${dragOffset}px` } as React.CSSProperties}>
         <div className="project-drawer__grabber" onPointerDown={startDrag} onPointerMove={dragDrawer} onPointerUp={endDrag} onPointerCancel={endDrag}><span aria-hidden="true" /></div>
         <div className="project-drawer__top"><span className="eyebrow">PROJECT DETAILS</span><button ref={closeButtonRef} className="project-drawer__close" type="button" onClick={closeDrawer} aria-label="Close project details"><X size={19} aria-hidden="true" /></button></div>
         <img className="project-drawer__image" src={selectedProject.image} alt={selectedProject.imageAlt} width="1200" height="1200" />

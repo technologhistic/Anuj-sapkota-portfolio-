@@ -4,22 +4,21 @@ import { CONTACT_EMAIL, PERSONAL_INFO } from '../data/portfolioData';
 
 type CardSpring = {
   x: number; y: number; z: number; vx: number; vy: number; vz: number;
-  dropY: number; dropVelocity: number;
+  dropY: number; dropVelocity: number; pullY: number; pullVelocity: number; targetPullY: number;
   inputX: number; inputY: number; lightX: number; lightY: number;
   targetLightX: number; targetLightY: number;
 };
 
-type DragOrigin = { pointerX: number; pointerY: number; left: number; top: number };
+type DragOrigin = { pointerX: number; pointerY: number };
 
 export const Hero: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
-  const [isFree, setIsFree] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
   const pendulumRef = useRef<HTMLDivElement>(null);
   const springRef = useRef<CardSpring>({
     x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, inputX: 0, inputY: 0,
-    dropY: -800, dropVelocity: 0,
+    dropY: -800, dropVelocity: 0, pullY: 0, pullVelocity: 0, targetPullY: 0,
     lightX: 50, lightY: 50, targetLightX: 50, targetLightY: 50,
   });
   const draggingRef = useRef(false);
@@ -28,7 +27,7 @@ export const Hero: React.FC = () => {
   const frameRef = useRef(0);
 
   const moveLight = (clientX: number, clientY: number) => {
-    const surface = isFree ? cardRef.current : stageRef.current;
+    const surface = stageRef.current;
     if (!surface) return;
     const rect = surface.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
@@ -42,31 +41,18 @@ export const Hero: React.FC = () => {
 
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
     if (!dropStartedRef.current) return;
-    const cardRect = event.currentTarget.getBoundingClientRect();
-    const origin = {
-      pointerX: event.clientX,
-      pointerY: event.clientY,
-      left: cardRect.left + cardRect.width / 2,
-      top: cardRect.top - 144,
-    };
-    dragOriginRef.current = origin;
-    const pendulum = pendulumRef.current;
-    pendulum?.style.setProperty('--global-left', `${origin.left}px`);
-    pendulum?.style.setProperty('--global-top', `${origin.top}px`);
+    dragOriginRef.current = { pointerX: event.clientX, pointerY: event.clientY };
     draggingRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
-    setIsFree(true);
     moveLight(event.clientX, event.clientY);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
     if (!draggingRef.current) return;
     const origin = dragOriginRef.current;
-    const pendulum = pendulumRef.current;
-    if (!origin || !pendulum) return;
-    pendulum.style.setProperty('--global-left', `${origin.left + event.clientX - origin.pointerX}px`);
-    pendulum.style.setProperty('--global-top', `${origin.top + event.clientY - origin.pointerY}px`);
+    if (!origin) return;
+    springRef.current.targetPullY = Math.max(0, Math.min(240, event.clientY - origin.pointerY));
     moveLight(event.clientX, event.clientY);
   };
 
@@ -77,6 +63,7 @@ export const Hero: React.FC = () => {
     }
     springRef.current.inputX = 0;
     springRef.current.inputY = 0;
+    springRef.current.targetPullY = 0;
     springRef.current.targetLightX = 50;
     springRef.current.targetLightY = 50;
   };
@@ -119,6 +106,9 @@ export const Hero: React.FC = () => {
         spring.dropVelocity = (spring.dropVelocity + (0 - spring.dropY) * dropStiffness) * Math.pow(0.76, dt);
         spring.dropY += spring.dropVelocity;
       }
+      const pullStiffness = (draggingRef.current ? 0.16 : 0.075) * dt;
+      spring.pullVelocity = (spring.pullVelocity + (spring.targetPullY - spring.pullY) * pullStiffness) * Math.pow(0.7, dt);
+      spring.pullY += spring.pullVelocity;
       spring.x += spring.vx;
       spring.y += spring.vy;
       spring.z += spring.vz;
@@ -136,6 +126,7 @@ export const Hero: React.FC = () => {
       if (pendulumRef.current) {
         pendulumRef.current.style.setProperty('--swing-angle', `${spring.z.toFixed(2)}deg`);
         pendulumRef.current.style.setProperty('--drop-y', `${spring.dropY.toFixed(1)}px`);
+        pendulumRef.current.style.setProperty('--pull-y', `${spring.pullY.toFixed(1)}px`);
       }
       frameRef.current = requestAnimationFrame(animate);
     };
@@ -181,7 +172,7 @@ export const Hero: React.FC = () => {
         >
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
-          <div className={`portrait-pendulum${isFree ? ' portrait-pendulum--free' : ''}${isDragging ? ' portrait-pendulum--dragging' : ''}`} ref={pendulumRef}>
+          <div className={`portrait-pendulum${isDragging ? ' portrait-pendulum--dragging' : ''}`} ref={pendulumRef}>
             <div className="portrait-lanyard-system">
               <div className="portrait-strap" aria-hidden="true" />
               <div className="portrait-clip" aria-hidden="true" />
