@@ -20,6 +20,7 @@ export default function App() {
   const [welcomeOpen, setWelcomeOpen] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
+  const welcomeNameRef = useRef<HTMLSpanElement>(null);
   const closeWelcome = useCallback(() => {
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
@@ -49,13 +50,26 @@ export default function App() {
   useGSAP(() => {
     if (!welcomeOpen) return;
     const intro = gsap.timeline({ onComplete: closeWelcome });
+    const typing = { progress: 0 };
+    let visibleLetters = 0;
     intro
-      .fromTo('.welcome-halo', { autoAlpha: 0, scale: 0.82, rotate: -14 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: 0.8, ease: 'power2.out' })
-      .fromTo('.welcome-kicker', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.38, ease: 'power2.out' }, '-=0.36')
-      .fromTo('.welcome-name span', { autoAlpha: 0, yPercent: 115, rotateX: -45 }, { autoAlpha: 1, yPercent: 0, rotateX: 0, duration: 0.76, stagger: 0.09, ease: 'power3.out' }, '-=0.08')
-      .fromTo('.welcome-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.48, ease: 'power2.inOut' }, '-=0.4')
-      .fromTo('.welcome-caption', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.34, ease: 'power2.out' }, '-=0.22')
-      .to('.welcome-screen', { yPercent: -100, duration: 0.64, ease: 'power3.inOut' }, '+=0.28');
+      .fromTo('.welcome-halo', { autoAlpha: 0, scale: 0.82, rotate: -14 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: 0.62, ease: 'power2.out' })
+      .fromTo('.welcome-kicker', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out' }, '-=0.2')
+      .to(typing, {
+        progress: 4,
+        duration: 0.36,
+        ease: 'none',
+        onUpdate: () => {
+          const nextCount = Math.floor(typing.progress);
+          if (nextCount !== visibleLetters && welcomeNameRef.current) {
+            welcomeNameRef.current.textContent = 'Anuj'.slice(0, nextCount);
+            visibleLetters = nextCount;
+          }
+        },
+      }, '-=0.06')
+      .fromTo('.welcome-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: 'power2.inOut' }, '-=0.15')
+      .fromTo('.welcome-caption', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out' }, '-=0.12')
+      .to('.welcome-screen', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=0.62');
     return () => intro.kill();
   }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
 
@@ -99,7 +113,7 @@ export default function App() {
         <div className="welcome-halo" aria-hidden="true" />
         <div className="welcome-content">
           <p className="welcome-kicker">WELCOME TO MY PORTFOLIO</p>
-          <h1 className="welcome-name" aria-label="Anuj"><span aria-hidden="true">A</span><span aria-hidden="true">n</span><span aria-hidden="true">u</span><span aria-hidden="true">j</span></h1>
+          <h1 className="welcome-name" aria-label="Anuj"><span className="welcome-typewriter" ref={welcomeNameRef} aria-hidden="true" /><i className="welcome-cursor" aria-hidden="true" /></h1>
           <span className="welcome-rule" aria-hidden="true" />
           <p className="welcome-caption">ANUJ SAPKOTA <span aria-hidden="true">/</span> NEPAL</p>
         </div>
