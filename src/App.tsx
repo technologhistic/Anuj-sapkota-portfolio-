@@ -59,7 +59,7 @@ export default function App() {
 
   useEffect(() => {
     if (!welcomeOpen) return;
-    const timer = window.setTimeout(closeWelcome, prefersReducedMotion() ? 0 : 3500);
+    const timer = window.setTimeout(closeWelcome, prefersReducedMotion() ? 0 : 2450);
     return () => window.clearTimeout(timer);
   }, [closeWelcome, welcomeOpen]);
 

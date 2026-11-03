@@ -94,17 +94,17 @@ export const Hero: React.FC = () => {
       const start = titleStartTime || now;
       titleStartTime = start;
       titleLines.forEach((line, index) => {
-        const progress = Math.max(0, Math.min(1, (now - start - index * 140) / 720));
+        const progress = Math.max(0, Math.min(1, (now - start - index * 90) / 600));
         const eased = 1 - (1 - progress) ** 3;
         line.style.opacity = `${eased}`;
         line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
       });
-      if (!dropTriggered && now - start >= 860) {
+      if (!dropTriggered && now - start >= 690) {
         dropTriggered = true;
         window.dispatchEvent(new Event('portfolio:hero-name-complete'));
       }
       if (run !== titleRun) return;
-      if (now - start < 860) {
+      if (now - start < 690) {
         titleFrame = requestAnimationFrame(animateTitle);
       } else {
         titleFrame = 0;

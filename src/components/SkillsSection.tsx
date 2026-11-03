@@ -112,8 +112,9 @@ export const SkillsSection: React.FC = () => {
 
     const calculateProgress = () => {
       const rect = scene.getBoundingClientRect();
-      const travel = Math.max(rect.height - window.innerHeight * .18, 1);
-      return clamp((window.innerHeight * .82 - rect.top) / travel);
+      // Start as the scene enters the viewport and finish after its bottom exits.
+      // This gives the particle and cards the full scroll distance to travel down.
+      return clamp((window.innerHeight - rect.top) / (rect.height + window.innerHeight));
     };
 
     const calculateHeadingProgress = () => {
