@@ -26,18 +26,15 @@ export default function App() {
   const [introClosing, setIntroClosing] = useState(false);
   const welcomeOpenRef = useRef(true);
   const pageRef = useRef<HTMLDivElement>(null);
-  const welcomeSkipRef = useRef<HTMLButtonElement>(null);
   const closeWelcome = useCallback(() => {
     if (!welcomeOpenRef.current) return;
     welcomeOpenRef.current = false;
-    const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
     // Start the hero reveal after React has closed the welcome overlay.
     requestAnimationFrame(() => {
       document.documentElement.dataset.portfolioIntroComplete = 'true';
       window.dispatchEvent(new Event('portfolio:intro-start'));
     });
-    if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
   }, []);
 
   useEffect(() => {
@@ -142,13 +139,8 @@ export default function App() {
 
   return (
     <div className="app-shell" ref={pageRef}>
-      {welcomeOpen && <div className={`welcome-screen${introClosing ? ' welcome-screen--closing' : ''}`} role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
-        <div className="welcome-content">
-          <h1 className="welcome-name" aria-label="Anuj">{introText}<span className="welcome-cursor" aria-hidden="true" /></h1>
-          <span className="welcome-rule" aria-hidden="true" />
-          <p className="welcome-caption">CREATIVE DEVELOPER</p>
-        </div>
-        <button ref={welcomeSkipRef} className="welcome-skip" type="button" onClick={closeWelcome}>Skip intro <span aria-hidden="true">↗</span></button>
+      {welcomeOpen && <div id="intro" className={`welcome-screen${introClosing ? ' welcome-screen--closing' : ''}`} role="status" aria-live="polite" aria-label="Welcome">
+        <span id="txt">{introText}</span><i className="welcome-cursor" aria-hidden="true" />
       </div>}
       <div className="portfolio-content" inert={welcomeOpen}>
         <a className="skip-link" href="#main-content">Skip to content</a>
