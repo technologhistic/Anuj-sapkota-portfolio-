@@ -2,74 +2,69 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Pause, Play } from 'lucide-react';
 import { CONTACT_EMAIL, PERSONAL_INFO } from '../data/portfolioData';
 
+type CardSpring = { x: number; y: number; vx: number; vy: number; targetX: number; targetY: number; lightX: number; lightY: number };
+
 export const Hero: React.FC = () => {
   const [motionPaused, setMotionPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const hangRef = useRef<HTMLDivElement>(null);
-  const pendulumRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
+  const springRef = useRef<CardSpring>({ x: 0, y: 0, vx: 0, vy: 0, targetX: 0, targetY: 0, lightX: 50, lightY: 50 });
   const pausedRef = useRef(false);
   const reducedMotionRef = useRef(false);
-  const swingLimitRef = useRef(35);
-  const physicsRef = useRef({ angle: 0, velocity: 2.8, dragging: false, lastAngle: 0 });
-  const startLoopRef = useRef<() => void>(() => {});
+  const draggingRef = useRef(false);
+  const startSpringRef = useRef<() => void>(() => {});
 
-  const swingLimit = () => swingLimitRef.current;
-
-  const angleFromPointer = (event: React.PointerEvent<HTMLElement>) => {
-    const stage = hangRef.current?.getBoundingClientRect();
-    if (!stage) return 0;
-    const dx = event.clientX - (stage.left + stage.width / 2);
-    const dy = Math.max(1, event.clientY - stage.top);
-    const angle = Math.atan2(-dx, dy) * 180 / Math.PI;
-    const limit = swingLimit();
-    return Math.max(-limit, Math.min(limit, angle));
+  const moveLight = (clientX: number, clientY: number) => {
+    const card = cardRef.current;
+    if (!card || pausedRef.current || reducedMotionRef.current) return;
+    const rect = card.getBoundingClientRect();
+    const x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
+    const y = Math.max(-1, Math.min(1, ((clientY - rect.top) / rect.height) * 2 - 1));
+    const spring = springRef.current;
+    spring.targetX = -y * 12;
+    spring.targetY = x * 15;
+    spring.lightX = (x + 1) * 50;
+    spring.lightY = (y + 1) * 50;
+    startSpringRef.current();
   };
 
-  const startDrag = (event: React.PointerEvent<HTMLElement>) => {
-    const physics = physicsRef.current;
-    physics.dragging = true;
-    physics.lastAngle = physics.angle = angleFromPointer(event);
-    physics.velocity = 0;
+  const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType !== 'touch') return;
+    draggingRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
-    startLoopRef.current();
+    moveLight(event.clientX, event.clientY);
   };
 
-  const dragCard = (event: React.PointerEvent<HTMLElement>) => {
-    const physics = physicsRef.current;
-    if (!physics.dragging) return;
-    const nextAngle = angleFromPointer(event);
-    physics.velocity = Math.max(-8, Math.min(8, nextAngle - physics.lastAngle));
-    physics.lastAngle = physics.angle = nextAngle;
+  const handlePointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType === 'touch' && !draggingRef.current) return;
+    moveLight(event.clientX, event.clientY);
   };
 
-  const endDrag = () => {
-    const physics = physicsRef.current;
-    if (!physics.dragging) return;
-    physics.dragging = false;
-    setIsDragging(false);
-    if (reducedMotionRef.current || pausedRef.current) {
-      physics.angle = 0;
-      physics.velocity = 0;
+  const releasePointer = () => {
+    if (draggingRef.current) {
+      draggingRef.current = false;
+      setIsDragging(false);
     }
-    startLoopRef.current();
+    springRef.current.targetX = 0;
+    springRef.current.targetY = 0;
+    startSpringRef.current();
   };
 
-  const swingWithKeyboard = (event: React.KeyboardEvent<HTMLElement>) => {
-    const physics = physicsRef.current;
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') {
-      physics.angle = 0;
-      physics.velocity = 0;
+      springRef.current.targetX = 0;
+      springRef.current.targetY = 0;
+      startSpringRef.current();
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      const limit = swingLimit();
-      const direction = event.key === 'ArrowLeft' ? -1 : 1;
-      physics.angle = Math.max(-limit, Math.min(limit, physics.angle + direction * 5));
-      physics.velocity = reducedMotionRef.current ? 0 : direction * 1.8;
+      springRef.current.targetY = event.key === 'ArrowLeft' ? -10 : 10;
+      startSpringRef.current();
+      event.preventDefault();
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      springRef.current.targetX = event.key === 'ArrowUp' ? 8 : -8;
+      startSpringRef.current();
+      event.preventDefault();
     }
-    else return;
-    startLoopRef.current();
-    event.preventDefault();
   };
 
   useEffect(() => {
@@ -77,101 +72,72 @@ export const Hero: React.FC = () => {
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
       : null;
     reducedMotionRef.current = motionPreference?.matches ?? false;
-    if (reducedMotionRef.current) physicsRef.current.velocity = 0;
-
-    const updateSwingLimit = () => {
-      const stage = hangRef.current?.getBoundingClientRect();
-      const card = cardRef.current;
-      if (!stage || !card) return;
-      const pivotX = stage.left + stage.width / 2;
-      const halfCard = card.offsetWidth / 2;
-      const halfHeight = card.offsetHeight / 2;
-      const sideRoom = Math.max(0, Math.min(pivotX, window.innerWidth - pivotX) - 12);
-      const armLength = 144 + halfHeight;
-      let limit = 0;
-      for (let degrees = 0.5; degrees <= 45; degrees += 0.5) {
-        const radians = degrees * Math.PI / 180;
-        const rotatedExtent = armLength * Math.sin(radians) + halfCard * Math.cos(radians) + halfHeight * Math.sin(radians);
-        if (rotatedExtent > sideRoom) break;
-        limit = degrees;
-      }
-      swingLimitRef.current = limit;
-      physicsRef.current.angle = Math.max(-swingLimitRef.current, Math.min(swingLimitRef.current, physicsRef.current.angle));
-    };
-    updateSwingLimit();
-    window.addEventListener('resize', updateSwingLimit);
-
-    const handleMotionPreference = (event: MediaQueryListEvent) => {
-      reducedMotionRef.current = event.matches;
-      if (event.matches) {
-        physicsRef.current.angle = 0;
-        physicsRef.current.velocity = 0;
-      }
-    };
-    if (motionPreference?.addEventListener) {
-      motionPreference.addEventListener('change', handleMotionPreference);
-    } else {
-      motionPreference?.addListener(handleMotionPreference);
-    }
-
     let frame = 0;
     let lastTime = 0;
+
     const animate = (now: number) => {
-      const physics = physicsRef.current;
-      const dt = lastTime ? Math.min(2.5, (now - lastTime) / 16.667) : 1;
+      const spring = springRef.current;
+      const dt = lastTime ? Math.min(2, (now - lastTime) / 16.667) : 1;
       lastTime = now;
-      let moving = false;
-      if (physics.dragging) {
-        moving = true;
-      } else if (!pausedRef.current && !reducedMotionRef.current) {
-        physics.velocity = (physics.velocity - physics.angle * 0.012 * dt) * Math.pow(0.99, dt);
-        physics.angle += physics.velocity * dt;
-        const limit = swingLimit();
-        if (Math.abs(physics.angle) > limit) {
-          physics.angle = Math.sign(physics.angle) * limit;
-          physics.velocity *= -0.42;
-        }
-        if (Math.abs(physics.angle) < 0.015 && Math.abs(physics.velocity) < 0.015) {
-          physics.angle = 0;
-          physics.velocity = 0;
-        }
-        moving = physics.angle !== 0 || physics.velocity !== 0;
-      } else {
-        physics.velocity = 0;
+      const stiffness = reducedMotionRef.current || pausedRef.current ? 0 : 0.12;
+      const damping = Math.pow(0.72, dt);
+      spring.vx = (spring.vx + (spring.targetX - spring.x) * stiffness * dt) * damping;
+      spring.vy = (spring.vy + (spring.targetY - spring.y) * stiffness * dt) * damping;
+      spring.x += spring.vx * dt;
+      spring.y += spring.vy * dt;
+      if (Math.abs(spring.x) < 0.015 && Math.abs(spring.vx) < 0.015) spring.x = spring.vx = 0;
+      if (Math.abs(spring.y) < 0.015 && Math.abs(spring.vy) < 0.015) spring.y = spring.vy = 0;
+
+      const card = cardRef.current;
+      if (card) {
+        card.style.setProperty('--tilt-x', `${spring.x.toFixed(2)}deg`);
+        card.style.setProperty('--tilt-y', `${spring.y.toFixed(2)}deg`);
+        card.style.setProperty('--light-x', `${spring.lightX.toFixed(1)}%`);
+        card.style.setProperty('--light-y', `${spring.lightY.toFixed(1)}%`);
       }
-      if (pendulumRef.current) pendulumRef.current.style.transform = `rotate(${physics.angle.toFixed(2)}deg)`;
-      if (moving) {
+      if (spring.x || spring.y || spring.vx || spring.vy || spring.targetX || spring.targetY) {
         frame = requestAnimationFrame(animate);
       } else {
         frame = 0;
         lastTime = 0;
       }
     };
-    // The loop only runs while the card is moving, so it costs nothing when idle.
-    startLoopRef.current = () => {
+    const startSpring = () => {
       if (!frame) {
         lastTime = 0;
         frame = requestAnimationFrame(animate);
       }
     };
-    startLoopRef.current();
+    startSpringRef.current = startSpring;
+    startSpring();
 
+    const handleMotionPreference = (event: MediaQueryListEvent) => {
+      reducedMotionRef.current = event.matches;
+      if (event.matches) {
+        springRef.current.targetX = 0;
+        springRef.current.targetY = 0;
+        startSpring();
+      }
+    };
+    motionPreference?.addEventListener?.('change', handleMotionPreference);
+    if (motionPreference && !motionPreference.addEventListener) motionPreference.addListener(handleMotionPreference);
     return () => {
       cancelAnimationFrame(frame);
-      if (motionPreference?.removeEventListener) {
-        motionPreference.removeEventListener('change', handleMotionPreference);
-      } else {
-        motionPreference?.removeListener(handleMotionPreference);
-      }
-      window.removeEventListener('resize', updateSwingLimit);
+      startSpringRef.current = () => {};
+      motionPreference?.removeEventListener?.('change', handleMotionPreference);
+      if (motionPreference && !motionPreference.removeEventListener) motionPreference.removeListener(handleMotionPreference);
     };
   }, []);
 
   const toggleMotion = () => setMotionPaused((paused) => {
-    pausedRef.current = !paused;
-    if (!paused) physicsRef.current.velocity = 0;
-    startLoopRef.current();
-    return !paused;
+    const next = !paused;
+    pausedRef.current = next;
+    if (next) {
+      springRef.current.targetX = 0;
+      springRef.current.targetY = 0;
+      startSpringRef.current();
+    }
+    return next;
   });
 
   return (
@@ -200,23 +166,24 @@ export const Hero: React.FC = () => {
           </div>
         </div>
 
-        <div className="hero-portrait-wrap" ref={hangRef}>
+        <div className="hero-portrait-wrap">
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
-          <div className="portrait-pendulum" ref={pendulumRef}>
+          <div className="portrait-pendulum">
             <div className="portrait-strap" aria-hidden="true" />
             <div className="portrait-clip" aria-hidden="true" />
             <article
               ref={cardRef}
               className={`portrait-card${isDragging ? ' portrait-card--dragging' : ''}`}
-              aria-label="Interactive hanging ID card for Anuj Sapkota. Drag it to swing, or use the left and right arrow keys. Press Escape to center it."
+              aria-label="Interactive ID card for Anuj Sapkota. Move the pointer or touch and drag the card to tilt it. Use arrow keys to tilt and Escape to center it."
               tabIndex={0}
-              onPointerDown={startDrag}
-              onPointerMove={dragCard}
-              onPointerUp={endDrag}
-              onPointerCancel={endDrag}
-              onLostPointerCapture={endDrag}
-              onKeyDown={swingWithKeyboard}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={releasePointer}
+              onPointerCancel={releasePointer}
+              onLostPointerCapture={releasePointer}
+              onPointerLeave={(event) => { if (event.pointerType !== 'touch' && !draggingRef.current) releasePointer(); }}
+              onKeyDown={handleKeyDown}
             >
               <div className="portrait-slot" aria-hidden="true" />
               <div className="portrait-image-frame">
@@ -228,7 +195,7 @@ export const Hero: React.FC = () => {
               </div>
               <div className="portrait-card__identity">
                 <p className="portrait-card__label">COMPUTER SCIENCE STUDENT</p>
-                <h2>Anuj Sapkota</h2>
+                <h2>{PERSONAL_INFO.name}</h2>
                 <p>Web &amp; application development</p>
               </div>
               <div className="portrait-card__foot"><span>ID 001</span><span>+2 CS</span></div>

@@ -23,7 +23,6 @@ export default function App() {
   const [welcomeOpen, setWelcomeOpen] = useState(() => !prefersReducedMotion());
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
-  const welcomeNameRef = useRef<HTMLSpanElement>(null);
   const closeWelcome = useCallback(() => {
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
@@ -52,33 +51,14 @@ export default function App() {
 
   useGSAP(() => {
     if (!welcomeOpen) return;
-    const intro = gsap.timeline({ paused: true, onComplete: closeWelcome });
-    const typing = { progress: 0 };
-    let visibleLetters = 0;
+    const letters = gsap.utils.toArray<HTMLElement>('.welcome-letter');
+    gsap.set(letters, { autoAlpha: 0, yPercent: 32, scale: 0.84, filter: 'blur(12px)' });
+    const intro = gsap.timeline({ onComplete: closeWelcome });
     intro
-      .fromTo('.welcome-halo', { autoAlpha: 0, scale: 0.82, rotate: -14 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: 0.62, ease: 'power2.out' })
-      .fromTo('.welcome-kicker', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out' }, '-=0.2')
-      .to(typing, {
-        progress: 4,
-        duration: 0.95,
-        ease: 'none',
-        onUpdate: () => {
-          const nextCount = Math.floor(typing.progress);
-          if (nextCount !== visibleLetters && welcomeNameRef.current) {
-            welcomeNameRef.current.textContent = 'Anuj'.slice(0, nextCount);
-            visibleLetters = nextCount;
-          }
-        },
-      }, '-=0.06')
-      .fromTo('.welcome-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: 'power2.inOut' }, '-=0.15')
-      .fromTo('.welcome-caption', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out' }, '-=0.12')
-      .to('.welcome-screen', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=1.2');
-    // Start after fonts are ready (or after 1.2s at most) so the typing is not skipped by load jank.
-    let started = false;
-    const go = () => { if (!started) { started = true; intro.play(); } };
-    document.fonts?.ready.then(go);
-    const fallback = window.setTimeout(go, 1200);
-    return () => { window.clearTimeout(fallback); intro.kill(); };
+      .to(letters, { autoAlpha: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.9, stagger: 0.19, ease: 'power3.out' })
+      .fromTo('.welcome-rule', { scaleX: 0, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.55, ease: 'power2.inOut' }, '-=0.2')
+      .to('.welcome-screen', { autoAlpha: 0, duration: 0.85, ease: 'power2.inOut' }, '+=0.55');
+    return () => intro.kill();
   }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
 
   useGSAP(() => {
@@ -101,11 +81,15 @@ export default function App() {
       }
 
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
-        gsap.fromTo(element, { autoAlpha: 0, y: travel(28) }, {
+        if (reducedMotion) {
+          gsap.set(element, { autoAlpha: 1, y: 0 });
+          return;
+        }
+        gsap.fromTo(element, { autoAlpha: 0, y: 28 }, {
           autoAlpha: 1,
           y: 0,
-          duration: duration(0.72, 0.18),
-          delay: Number(element.style.getPropertyValue('--reveal-order') || 0) * (reducedMotion ? 0.02 : 0.055),
+          duration: 0.72,
+          delay: Number(element.style.getPropertyValue('--reveal-order') || 0) * 0.055,
           ease: 'power2.out',
           scrollTrigger: { trigger: element, start: 'top 88%', once: true },
         });
@@ -129,12 +113,9 @@ export default function App() {
   return (
     <div className="app-shell" ref={pageRef}>
       {welcomeOpen && <div className="welcome-screen" role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
-        <div className="welcome-halo" aria-hidden="true" />
         <div className="welcome-content">
-          <p className="welcome-kicker">WELCOME TO MY PORTFOLIO</p>
-          <h1 className="welcome-name" aria-label="Anuj"><span className="welcome-typewriter" ref={welcomeNameRef} aria-hidden="true" /><i className="welcome-cursor" aria-hidden="true" /></h1>
+          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" aria-hidden="true">{letter}</span>)}</h1>
           <span className="welcome-rule" aria-hidden="true" />
-          <p className="welcome-caption">ANUJ SAPKOTA <span aria-hidden="true">/</span> NEPAL</p>
         </div>
         <button ref={welcomeSkipRef} className="welcome-skip" type="button" onClick={closeWelcome}>Skip intro <span aria-hidden="true">↗</span></button>
       </div>}
