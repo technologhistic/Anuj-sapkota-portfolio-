@@ -1,27 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: 'Space Grotesk', 'Archivo', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
-:root { color-scheme: dark; --bg: #090c0b; --surface: #101513; --surface-raised: #151b18; --ink: #f0f3ec; --body: #bac2ba; --muted: #7e8981; --line: rgba(219, 232, 220, .12); --acid: #c9ff5f; --acid-dark: #a5d945; }
+:root {
+  color-scheme: light;
+  --paper: #f5f2ea;
+  --paper-deep: #ebe7dc;
+  --ink: #1d1d1a;
+  --body: #393933;
+  --muted: #61615a;
+  --line: #d7d2c7;
+  --blue: #3548c3;
+  --blue-soft: #e6e8f5;
+}
 
 @layer base {
-  html { scroll-behavior: smooth; scroll-padding-top: 6rem; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-  body { min-width: 320px; overflow-x: hidden; background: var(--bg); color: var(--body); font-family: var(--font-sans); line-height: 1.65; }
-  h1, h2, h3, h4 { color: var(--ink); font-family: var(--font-serif); letter-spacing: -.045em; text-wrap: balance; }
+  html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  body { min-width: 320px; overflow-x: hidden; background: var(--paper); color: var(--body); font-family: var(--font-sans); line-height: 1.65; }
+  h1, h2, h3, h4 { color: var(--ink); font-family: var(--font-serif); letter-spacing: -.04em; text-wrap: balance; }
   p { text-wrap: pretty; }
   a, button { -webkit-tap-highlight-color: transparent; }
   button { min-height: 44px; cursor: pointer; }
-  :focus-visible { outline: 2px solid var(--acid); outline-offset: 4px; }
-  ::selection { background: var(--acid); color: #10130e; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+  ::selection { background: var(--blue); color: white; }
 }
 
-.site-shell { background: radial-gradient(ellipse at 85% 10%, rgba(127, 167, 76, .09), transparent 34rem), var(--bg); }
-.site-grid { background-image: linear-gradient(rgba(219,232,220,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(219,232,220,.035) 1px, transparent 1px); background-size: 56px 56px; mask-image: linear-gradient(to bottom, black, transparent 85%); }
-.noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E"); }
-.onyx-orbit { animation: orbit 38s linear infinite; }
-@keyframes orbit { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .onyx-orbit { animation: none; } }
+.paper-page { background-color: var(--paper); background-image: linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(29,29,26,.018) calc(100% - 1px)); background-size: 100% 100%; }
+.section-rule { border-color: var(--line); }
+.ink-panel { color: #f5f2ea; background: var(--ink); }
+.accent-mark { color: var(--blue); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
