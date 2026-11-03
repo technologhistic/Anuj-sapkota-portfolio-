@@ -14,6 +14,7 @@ import { Footer } from './components/Footer';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
+const INTRO_DURATION = 3000;
 const prefersReducedMotion = () => typeof window !== 'undefined'
   && typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,11 +30,11 @@ export default function App() {
     welcomeOpenRef.current = false;
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
-    // Wait for React to remove the overlay before starting the hero reveal.
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    // Start the hero reveal after React has closed the welcome overlay.
+    requestAnimationFrame(() => {
       document.documentElement.dataset.portfolioIntroComplete = 'true';
       window.dispatchEvent(new Event('portfolio:intro-start'));
-    }));
+    });
     if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
   }, []);
 
@@ -59,7 +60,10 @@ export default function App() {
 
   useEffect(() => {
     if (!welcomeOpen) return;
-    const timer = window.setTimeout(closeWelcome, prefersReducedMotion() ? 0 : 2450);
+    const timer = window.setTimeout(
+      closeWelcome,
+      prefersReducedMotion() ? 0 : INTRO_DURATION,
+    );
     return () => window.clearTimeout(timer);
   }, [closeWelcome, welcomeOpen]);
 

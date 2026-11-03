@@ -135,12 +135,14 @@ export const Hero: React.FC = () => {
 
     let lastTime = 0;
     const startDrop = () => { dropStartedRef.current = true; };
-    const onIntroStart = () => startTitle();
-    window.addEventListener('portfolio:intro-start', onIntroStart);
+    const handleIntroStart = () => {
+      startTitle();
+    };
+    window.addEventListener('portfolio:intro-start', handleIntroStart);
     window.addEventListener('portfolio:hero-name-complete', startDrop);
     // Register listeners first: reduced motion can complete the reveal synchronously.
     // The root flag covers a late mount after the intro event has already fired.
-    if (document.documentElement.dataset.portfolioIntroComplete === 'true' || !document.querySelector('.welcome-screen')) {
+    if (document.documentElement.dataset.portfolioIntroComplete === 'true') {
       startTitle();
     }
     const animate = (now: number) => {
@@ -192,7 +194,7 @@ export const Hero: React.FC = () => {
     return () => {
       cancelAnimationFrame(frameRef.current);
       if (titleFrame) cancelAnimationFrame(titleFrame);
-      window.removeEventListener('portfolio:intro-start', onIntroStart);
+      window.removeEventListener('portfolio:intro-start', handleIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };
   }, []);
