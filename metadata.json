@@ -1,6 +1,6 @@
 {
-  "name": "Anuj Sapkota — Portfolio",
-  "description": "Personal portfolio website of Anuj Sapkota, Frontend Developer & Aspiring Software Engineer. Building purposeful, performant digital experiences.",
+  "name": "BUILD WITH ONYX — Anuj Sapkota",
+  "description": "Portfolio of Anuj Sapkota, a +2 Computer Science student in Nepal focused on software development.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
