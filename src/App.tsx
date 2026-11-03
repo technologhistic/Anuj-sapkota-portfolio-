@@ -14,10 +14,13 @@ import { Footer } from './components/Footer';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
+const prefersReducedMotion = () => typeof window !== 'undefined'
+  && typeof window.matchMedia === 'function'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
-  const [welcomeOpen, setWelcomeOpen] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [welcomeOpen, setWelcomeOpen] = useState(() => !prefersReducedMotion());
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
   const welcomeNameRef = useRef<HTMLSpanElement>(null);
@@ -81,23 +84,28 @@ export default function App() {
   useGSAP(() => {
     if (welcomeOpen) return;
     const media = gsap.matchMedia();
-    media.add('(prefers-reduced-motion: no-preference)', () => {
+    const installPageAnimations = (reducedMotion: boolean) => {
+      const travel = (fullDistance: number) => reducedMotion ? 0 : fullDistance;
+      const duration = (fullDuration: number, reducedDuration = 0.2) => reducedMotion ? reducedDuration : fullDuration;
       const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
       intro
-        .from('.hero-kicker', { autoAlpha: 0, y: 16, duration: 0.55 })
-        .from('.hero-title-line > span', { yPercent: 112, duration: 0.95, stagger: 0.12 }, '-=0.28')
-        .from('.hero-metal-ring', { autoAlpha: 0, scale: 0.82, duration: 1.35, ease: 'power2.out' }, '-=0.86')
-        .from('.hero-copyline', { autoAlpha: 0, y: 22, duration: 0.65 }, '-=0.35')
-        .from('.hero-actions > *', { autoAlpha: 0, y: 14, duration: 0.45, stagger: 0.08 }, '-=0.34')
-        .from('.hero-portrait-wrap', { autoAlpha: 0, y: 32, rotateY: -10, duration: 0.95 }, '-=0.7')
-        .from('.hero-script text', { strokeDashoffset: 260, duration: 1.05, ease: 'power2.inOut' }, '-=0.7');
+        .from('.hero-kicker', { autoAlpha: 0, y: travel(16), duration: duration(0.55) })
+        .from('.hero-title-line > span', { autoAlpha: 0, yPercent: reducedMotion ? 0 : 112, duration: duration(0.95, 0.24), stagger: reducedMotion ? 0.025 : 0.12 }, '-=0.28')
+        .from('.hero-metal-ring', { autoAlpha: 0, scale: reducedMotion ? 1 : 0.82, duration: duration(1.35), ease: 'power2.out' }, '-=0.86')
+        .from('.hero-copyline', { autoAlpha: 0, y: travel(22), duration: duration(0.65) }, '-=0.35')
+        .from('.hero-actions > *', { autoAlpha: 0, y: travel(14), duration: duration(0.45), stagger: reducedMotion ? 0.025 : 0.08 }, '-=0.34')
+        .from('.hero-portrait-wrap', { autoAlpha: 0, y: travel(32), rotateY: travel(-10), duration: duration(0.95) }, '-=0.7');
+
+      if (!reducedMotion) {
+        intro.from('.hero-script text', { strokeDashoffset: 260, duration: 1.05, ease: 'power2.inOut' }, '-=0.7');
+      }
 
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
-        gsap.fromTo(element, { autoAlpha: 0, y: 28 }, {
+        gsap.fromTo(element, { autoAlpha: 0, y: travel(28) }, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.72,
-          delay: Number(element.style.getPropertyValue('--reveal-order') || 0) * 0.055,
+          duration: duration(0.72, 0.18),
+          delay: Number(element.style.getPropertyValue('--reveal-order') || 0) * (reducedMotion ? 0.02 : 0.055),
           ease: 'power2.out',
           scrollTrigger: { trigger: element, start: 'top 88%', once: true },
         });
@@ -106,9 +114,15 @@ export default function App() {
       gsap.to('.scroll-progress', {
         scaleX: 1,
         ease: 'none',
-        scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: 0.35 },
+        scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub: reducedMotion ? true : 0.35 },
       });
-    });
+    };
+
+    media.add('(prefers-reduced-motion: no-preference)', () => installPageAnimations(false));
+    media.add('(prefers-reduced-motion: reduce)', () => installPageAnimations(true));
+    const hasMatchingMotionQuery = window.matchMedia?.('(prefers-reduced-motion: no-preference)').matches
+      || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!hasMatchingMotionQuery) installPageAnimations(false);
     return () => media.revert();
   }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
 

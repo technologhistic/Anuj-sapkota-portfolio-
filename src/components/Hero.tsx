@@ -73,9 +73,11 @@ export const Hero: React.FC = () => {
   };
 
   useEffect(() => {
-    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    reducedMotionRef.current = motionPreference.matches;
-    if (motionPreference.matches) physicsRef.current.velocity = 0;
+    const motionPreference = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+    reducedMotionRef.current = motionPreference?.matches ?? false;
+    if (reducedMotionRef.current) physicsRef.current.velocity = 0;
 
     const updateSwingLimit = () => {
       const stage = hangRef.current?.getBoundingClientRect();
@@ -106,7 +108,11 @@ export const Hero: React.FC = () => {
         physicsRef.current.velocity = 0;
       }
     };
-    motionPreference.addEventListener('change', handleMotionPreference);
+    if (motionPreference?.addEventListener) {
+      motionPreference.addEventListener('change', handleMotionPreference);
+    } else {
+      motionPreference?.addListener(handleMotionPreference);
+    }
 
     let frame = 0;
     let lastTime = 0;
@@ -152,7 +158,11 @@ export const Hero: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(frame);
-      motionPreference.removeEventListener('change', handleMotionPreference);
+      if (motionPreference?.removeEventListener) {
+        motionPreference.removeEventListener('change', handleMotionPreference);
+      } else {
+        motionPreference?.removeListener(handleMotionPreference);
+      }
       window.removeEventListener('resize', updateSwingLimit);
     };
   }, []);
