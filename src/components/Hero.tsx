@@ -13,6 +13,7 @@ type DragOrigin = { pointerX: number; pointerY: number };
 
 export const Hero: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
   const pendulumRef = useRef<HTMLDivElement>(null);
@@ -82,9 +83,61 @@ export const Hero: React.FC = () => {
   };
 
   useEffect(() => {
+    let titleFrame = 0;
+    let titleRun = 0;
+    let dropTriggered = false;
+    const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
+    titleLines.forEach((line) => {
+      line.style.opacity = '0';
+      line.style.transform = 'translate3d(0, 110%, 0)';
+    });
+
+    const animateTitle = (now: number) => {
+      const run = titleRun;
+      const start = titleStartTime || now;
+      titleStartTime = start;
+      titleLines.forEach((line, index) => {
+        const progress = Math.max(0, Math.min(1, (now - start - index * 140) / 720));
+        const eased = 1 - (1 - progress) ** 3;
+        line.style.opacity = `${eased}`;
+        line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
+      });
+      if (!dropTriggered && now - start >= 720) {
+        dropTriggered = true;
+        window.dispatchEvent(new Event('portfolio:hero-name-complete'));
+      }
+      if (run !== titleRun) return;
+      if (now - start < 860) {
+        titleFrame = requestAnimationFrame(animateTitle);
+      } else {
+        titleFrame = 0;
+        titleLines.forEach((line) => {
+          line.style.removeProperty('opacity');
+          line.style.removeProperty('transform');
+        });
+      }
+    };
+    let titleStartTime = 0;
+    const startTitle = () => {
+      titleRun += 1;
+      if (titleFrame) cancelAnimationFrame(titleFrame);
+      dropTriggered = false;
+      titleStartTime = 0;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        titleLines.forEach((line) => {
+          line.style.removeProperty('opacity');
+          line.style.removeProperty('transform');
+        });
+        window.dispatchEvent(new Event('portfolio:hero-name-complete'));
+        return;
+      }
+      titleFrame = requestAnimationFrame(animateTitle);
+    };
+
     let lastTime = 0;
     const startDrop = () => { dropStartedRef.current = true; };
-    window.addEventListener('portfolio:intro-complete', startDrop);
+    window.addEventListener('portfolio:intro-start', startTitle);
+    window.addEventListener('portfolio:hero-name-complete', startDrop);
     const animate = (now: number) => {
       const spring = springRef.current;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
@@ -133,7 +186,9 @@ export const Hero: React.FC = () => {
     frameRef.current = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frameRef.current);
-      window.removeEventListener('portfolio:intro-complete', startDrop);
+      if (titleFrame) cancelAnimationFrame(titleFrame);
+      window.removeEventListener('portfolio:intro-start', startTitle);
+      window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };
   }, []);
 
@@ -147,7 +202,7 @@ export const Hero: React.FC = () => {
       <div className="page-shell hero-layout">
         <div className="hero-copy">
           <p className="eyebrow hero-kicker"><span className="eyebrow-rule" />CS STUDENT · WEB & APP DEVELOPMENT · NEPAL</p>
-          <h1 id="hero-title" className="hero-title" tabIndex={-1}>
+          <h1 id="hero-title" className="hero-title" tabIndex={-1} ref={titleRef}>
             <span className="hero-title-line"><span>ANUJ</span></span>
             <span className="hero-title-line hero-title-line--silver"><span>SAPKOTA</span></span>
           </h1>

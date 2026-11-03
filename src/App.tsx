@@ -26,6 +26,7 @@ export default function App() {
   const closeWelcome = useCallback(() => {
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
+    window.dispatchEvent(new Event('portfolio:intro-start'));
     if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
   }, []);
 
@@ -64,18 +65,6 @@ export default function App() {
       const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
       intro
         .from('.hero-kicker', { autoAlpha: 0, y: travel(16), duration: duration(0.55) })
-        .fromTo('.hero-title-line > span',
-          { autoAlpha: 0, yPercent: reducedMotion ? 0 : 112 },
-          {
-            autoAlpha: 1,
-            yPercent: 0,
-            duration: duration(0.95, 0.24),
-            stagger: reducedMotion ? 0.025 : 0.12,
-            onComplete: () => gsap.set('.hero-title-line > span', { clearProps: 'opacity,visibility,transform' }),
-          },
-          '-=0.28',
-        )
-        .call(() => window.dispatchEvent(new Event('portfolio:intro-complete')), [], reducedMotion ? '-=0.025' : '-=0.12')
         .from('.hero-metal-ring', { autoAlpha: 0, scale: reducedMotion ? 1 : 0.82, duration: duration(1.35), ease: 'power2.out' }, '-=0.86')
         .from('.hero-copyline', { autoAlpha: 0, y: travel(22), duration: duration(0.65) }, '-=0.35')
         .from('.hero-actions > *', { autoAlpha: 0, y: travel(14), duration: duration(0.45), stagger: reducedMotion ? 0.025 : 0.08 }, '-=0.34')

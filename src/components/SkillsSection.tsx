@@ -21,6 +21,7 @@ const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, v
 
 export const SkillsSection: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const progressPathRef = useRef<SVGPathElement>(null);
   const particleRef = useRef<HTMLSpanElement>(null);
@@ -33,6 +34,7 @@ export const SkillsSection: React.FC = () => {
     const progressPath = progressPathRef.current;
     const particle = particleRef.current;
     if (!scene || !path || !progressPath || !particle) return;
+    const heading = headingRef.current;
 
     const pathLength = path.getTotalLength();
     progressPath.style.strokeDasharray = `${pathLength}`;
@@ -65,15 +67,22 @@ export const SkillsSection: React.FC = () => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let progress = 0;
     let targetProgress = 0;
+    let headingProgress = 0;
+    let targetHeadingProgress = 0;
     let frame = 0;
     let lastTime = 0;
 
-    const draw = (value: number) => {
+    const draw = (value: number, headingValue: number) => {
       const distance = pathLength * value;
       progressPath.style.strokeDashoffset = `${pathLength - distance}`;
       const point = path.getPointAtLength(clamp(distance, 0, pathLength));
       particle.style.left = `${(point.x / 1000) * 100}%`;
       particle.style.top = `${(point.y / 1200) * 100}%`;
+      if (heading) {
+        heading.style.opacity = `${headingValue.toFixed(3)}`;
+        heading.style.transform = `translate3d(0, ${((1 - headingValue) * 22).toFixed(1)}px, 0)`;
+        heading.style.visibility = headingValue > .005 ? 'visible' : 'hidden';
+      }
       nodePoints.forEach((nodePoint, index) => {
         const node = nodeRefs.current[index];
         const card = cardRefs.current[index];
@@ -97,15 +106,23 @@ export const SkillsSection: React.FC = () => {
       return clamp((window.innerHeight - rect.top) / (rect.height + window.innerHeight));
     };
 
+    const calculateHeadingProgress = () => {
+      if (!heading) return 1;
+      const rect = heading.getBoundingClientRect();
+      return clamp((window.innerHeight - rect.top) / 180);
+    };
+
     const animate = (now: number) => {
       frame = 0;
       const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
       lastTime = now;
       const ease = 1 - Math.exp(-dt / 48);
       progress += (targetProgress - progress) * ease;
+      headingProgress += (targetHeadingProgress - headingProgress) * ease;
       if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
-      draw(progress);
-      if (progress !== targetProgress) frame = requestAnimationFrame(animate);
+      if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
+      draw(progress, headingProgress);
+      if (progress !== targetProgress || headingProgress !== targetHeadingProgress) frame = requestAnimationFrame(animate);
     };
 
     const updateFromScroll = () => {
@@ -114,6 +131,7 @@ export const SkillsSection: React.FC = () => {
         return;
       }
       targetProgress = calculateProgress();
+      targetHeadingProgress = calculateHeadingProgress();
       if (!frame) frame = requestAnimationFrame(animate);
     };
 
@@ -121,7 +139,8 @@ export const SkillsSection: React.FC = () => {
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
       progress = targetProgress = 1;
-      draw(1);
+      headingProgress = targetHeadingProgress = 1;
+      draw(1, 1);
       particle.style.opacity = '0';
       nodeRefs.current.forEach((node) => node?.classList.add('skill-node--lit'));
     };
@@ -137,8 +156,10 @@ export const SkillsSection: React.FC = () => {
     if (prefersReducedMotion.matches) showStaticPath();
     else {
       targetProgress = calculateProgress();
+      targetHeadingProgress = calculateHeadingProgress();
       progress = targetProgress;
-      draw(progress);
+      headingProgress = targetHeadingProgress;
+      draw(progress, headingProgress);
     }
     window.addEventListener('scroll', updateFromScroll, { passive: true });
     window.addEventListener('resize', updateFromScroll);
@@ -155,7 +176,7 @@ export const SkillsSection: React.FC = () => {
   return (
     <section id="skills" className="section section--skills" aria-labelledby="skills-title">
       <div className="page-shell">
-        <div className="section-header">
+        <div className="section-header" ref={headingRef}>
           <div><p className="eyebrow"><span className="section-number">02</span> SKILLS &amp; CURIOSITY</p><h2 id="skills-title" className="section-heading">What I’m <span className="text-silver">exploring.</span></h2></div>
           <p className="section-intro">Hands-on technologies surfaced in my public repositories, alongside the areas I’m learning about.</p>
         </div>
