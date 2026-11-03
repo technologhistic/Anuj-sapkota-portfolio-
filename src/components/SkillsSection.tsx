@@ -75,8 +75,11 @@ export const SkillsSection: React.FC = () => {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let progress = 0;
+    let targetProgress = 0;
     let headingProgress = 0;
-    let scrollFrame = 0;
+    let targetHeadingProgress = 0;
+    let frame = 0;
+    let lastTime = 0;
 
     const draw = (value: number, headingValue: number) => {
       const distance = pathLength * value;
@@ -93,9 +96,7 @@ export const SkillsSection: React.FC = () => {
         const node = nodeRefs.current[index];
         const card = cardRefs.current[index];
         const nodeProgress = nodePoint.length / pathLength;
-        const revealStart = Math.max(0, nodeProgress - .055);
-        const revealEnd = Math.min(1, nodeProgress + .045);
-        const reveal = clamp((value - revealStart) / Math.max(revealEnd - revealStart, .001));
+        const reveal = value >= .999 ? 1 : clamp((value - nodeProgress + .055) / .1);
         const glowStart = Math.max(0, nodeProgress - .035);
         const glowEnd = Math.min(1, nodeProgress + .04);
         const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
@@ -114,16 +115,28 @@ export const SkillsSection: React.FC = () => {
 
     const calculateProgress = () => {
       const rect = scene.getBoundingClientRect();
-      const start = window.innerHeight * 0.85;
-      const end = -scene.offsetHeight + window.innerHeight * 0.2;
-
-      return clamp((start - rect.top) / (start - end));
+      return clamp((window.innerHeight * .62 - rect.top) / Math.max(rect.height, 1));
     };
 
     const calculateHeadingProgress = () => {
       if (!heading) return 1;
       const rect = heading.getBoundingClientRect();
-      return clamp((window.innerHeight * .9 - rect.top) / Math.max(rect.height + window.innerHeight * .1, 1));
+      return clamp((window.innerHeight * .92 - rect.top) / Math.max(window.innerHeight * .22, 1));
+    };
+
+    const animate = (now: number) => {
+      frame = 0;
+      const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
+      lastTime = now;
+      const easing = 1 - Math.exp(-dt / 48);
+      progress += (targetProgress - progress) * easing;
+      headingProgress += (targetHeadingProgress - headingProgress) * easing;
+      if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
+      if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
+      draw(progress, headingProgress);
+      if (progress !== targetProgress || headingProgress !== targetHeadingProgress) {
+        frame = requestAnimationFrame(animate);
+      }
     };
 
     const updateFromScroll = () => {
@@ -131,21 +144,16 @@ export const SkillsSection: React.FC = () => {
         showStaticPath();
         return;
       }
-      if (scrollFrame) return;
-
-      scrollFrame = requestAnimationFrame(() => {
-        scrollFrame = 0;
-        progress = calculateProgress();
-        headingProgress = calculateHeadingProgress();
-        draw(progress, headingProgress);
-      });
+      targetProgress = calculateProgress();
+      targetHeadingProgress = calculateHeadingProgress();
+      if (!frame) frame = requestAnimationFrame(animate);
     };
 
     const showStaticPath = () => {
-      if (scrollFrame) cancelAnimationFrame(scrollFrame);
-      scrollFrame = 0;
-      progress = 1;
-      headingProgress = 1;
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      progress = targetProgress = 1;
+      headingProgress = targetHeadingProgress = 1;
       draw(1, 1);
       particle.style.opacity = '0';
       nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
@@ -161,8 +169,8 @@ export const SkillsSection: React.FC = () => {
 
     if (prefersReducedMotion.matches) showStaticPath();
     else {
-      progress = calculateProgress();
-      headingProgress = calculateHeadingProgress();
+      progress = targetProgress = calculateProgress();
+      headingProgress = targetHeadingProgress = calculateHeadingProgress();
       draw(progress, headingProgress);
       scene.classList.add('skills-timeline--animated');
     }
@@ -176,7 +184,7 @@ export const SkillsSection: React.FC = () => {
 
     return () => {
       scene.classList.remove('skills-timeline--animated');
-      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+      if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', updateFromScroll);
       window.removeEventListener('resize', updateFromScroll);
       window.removeEventListener('orientationchange', updateFromScroll);

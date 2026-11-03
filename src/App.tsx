@@ -14,8 +14,9 @@ import { Footer } from './components/Footer';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
-const INTRO_TEXT = 'Anuj';
-const INTRO_HOLD_DURATION = 2000;
+const INTRO_DURATION = 4000;
+const REDUCED_INTRO_DURATION = 2000;
+const INTRO_EXIT_DURATION = 650;
 const prefersReducedMotion = () => typeof window !== 'undefined'
   && typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,19 +24,21 @@ const prefersReducedMotion = () => typeof window !== 'undefined'
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [welcomeOpen, setWelcomeOpen] = useState(true);
-  const [introText, setIntroText] = useState('');
-  const [introClosing, setIntroClosing] = useState(false);
+  const [welcomeLeaving, setWelcomeLeaving] = useState(false);
   const welcomeOpenRef = useRef(true);
   const pageRef = useRef<HTMLDivElement>(null);
   const closeWelcome = useCallback(() => {
     if (!welcomeOpenRef.current) return;
     welcomeOpenRef.current = false;
-    setWelcomeOpen(false);
-    // Start the hero reveal after React has closed the welcome overlay.
-    requestAnimationFrame(() => {
-      document.documentElement.dataset.portfolioIntroComplete = 'true';
-      window.dispatchEvent(new Event('portfolio:intro-start'));
-    });
+    setWelcomeLeaving(true);
+    const exitDuration = prefersReducedMotion() ? 0 : INTRO_EXIT_DURATION;
+    window.setTimeout(() => {
+      setWelcomeOpen(false);
+      requestAnimationFrame(() => {
+        document.documentElement.dataset.portfolioIntroComplete = 'true';
+        window.dispatchEvent(new Event('portfolio:intro-start'));
+      });
+    }, exitDuration);
   }, []);
 
   useEffect(() => {
@@ -60,42 +63,11 @@ export default function App() {
 
   useEffect(() => {
     if (!welcomeOpen) return;
-    setIntroText('');
-    setIntroClosing(false);
-
-    if (prefersReducedMotion()) {
-      setIntroText(INTRO_TEXT);
-      let closeTimer = 0;
-      const holdTimer = window.setTimeout(() => {
-        setIntroClosing(true);
-        closeTimer = window.setTimeout(closeWelcome, 0);
-      }, INTRO_HOLD_DURATION);
-      return () => {
-        window.clearTimeout(holdTimer);
-        window.clearTimeout(closeTimer);
-      };
-    }
-
-    let index = 0;
-    let holdTimer = 0;
-    let closeTimer = 0;
-    const typingTimer = window.setInterval(() => {
-      index += 1;
-      setIntroText(INTRO_TEXT.slice(0, index));
-      if (index >= INTRO_TEXT.length) {
-        window.clearInterval(typingTimer);
-        holdTimer = window.setTimeout(() => {
-          setIntroClosing(true);
-          closeTimer = window.setTimeout(closeWelcome, 1000);
-        }, INTRO_HOLD_DURATION);
-      }
-    }, 260);
-
-    return () => {
-      window.clearInterval(typingTimer);
-      window.clearTimeout(holdTimer);
-      window.clearTimeout(closeTimer);
-    };
+    const timer = window.setTimeout(
+      closeWelcome,
+      prefersReducedMotion() ? REDUCED_INTRO_DURATION : INTRO_DURATION,
+    );
+    return () => window.clearTimeout(timer);
   }, [closeWelcome, welcomeOpen]);
 
   useGSAP(() => {
@@ -147,8 +119,13 @@ export default function App() {
 
   return (
     <div className="app-shell" ref={pageRef}>
-      {welcomeOpen && <div id="intro" className={`welcome-screen${introClosing ? ' welcome-screen--closing' : ''}`} role="status" aria-live="polite" aria-label="Welcome">
-        <span id="txt">{introText}</span><i className="welcome-cursor" aria-hidden="true" />
+      {welcomeOpen && <div id="welcome" className={`welcome-screen${welcomeLeaving ? ' welcome-screen--leaving' : ''}`} role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
+        <div className="welcome-content">
+          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" style={{ '--intro-index': index } as React.CSSProperties} aria-hidden="true">{letter}</span>)}</h1>
+          <span className="welcome-rule" aria-hidden="true" />
+          <p className="welcome-caption">CREATIVE DEVELOPER</p>
+        </div>
+        <button className="welcome-skip" type="button" onClick={closeWelcome}>Skip intro <span aria-hidden="true">↗</span></button>
       </div>}
       <div className="portfolio-content" inert={welcomeOpen}>
         <a className="skip-link" href="#main-content">Skip to content</a>

@@ -83,24 +83,56 @@ export const Hero: React.FC = () => {
   };
 
   useEffect(() => {
-    let titleHoldTimer = 0;
+    let titleFrame = 0;
+    let titleStartTime = 0;
+    let titleStarted = false;
     let dropTriggered = false;
     const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
-    let titleStarted = false;
     const completeTitle = () => {
       if (dropTriggered) return;
       dropTriggered = true;
       window.dispatchEvent(new Event('portfolio:hero-name-complete'));
     };
 
+    const animateTitle = (now: number) => {
+      const start = titleStartTime || now;
+      titleStartTime = start;
+      titleLines.forEach((line, index) => {
+        const progress = Math.max(0, Math.min(1, (now - start - index * 90) / 600));
+        const eased = 1 - (1 - progress) ** 3;
+        line.style.opacity = `${eased}`;
+        line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
+      });
+
+      if (now - start >= 690) {
+        titleFrame = 0;
+        titleLines.forEach((line) => {
+          line.style.removeProperty('opacity');
+          line.style.removeProperty('transform');
+        });
+        completeTitle();
+        return;
+      }
+      titleFrame = requestAnimationFrame(animateTitle);
+    };
+
     const startTitle = () => {
       if (titleStarted) return;
       titleStarted = true;
       titleLines.forEach((line) => {
-        line.style.removeProperty('opacity');
-        line.style.removeProperty('transform');
+        line.style.opacity = '0';
+        line.style.transform = 'translate3d(0, 110%, 0)';
       });
-      titleHoldTimer = window.setTimeout(completeTitle, 4000);
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        titleLines.forEach((line) => {
+          line.style.removeProperty('opacity');
+          line.style.removeProperty('transform');
+        });
+        completeTitle();
+        return;
+      }
+      titleStartTime = 0;
+      titleFrame = requestAnimationFrame(animateTitle);
     };
 
     let lastTime = 0;
@@ -110,8 +142,7 @@ export const Hero: React.FC = () => {
     };
     window.addEventListener('portfolio:intro-start', handleIntroStart);
     window.addEventListener('portfolio:hero-name-complete', startDrop);
-    // Leave the name visible from the first render; start the four-second hold now.
-    startTitle();
+    if (document.documentElement.dataset.portfolioIntroComplete === 'true') startTitle();
     const animate = (now: number) => {
       const spring = springRef.current;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
@@ -160,7 +191,7 @@ export const Hero: React.FC = () => {
     frameRef.current = requestAnimationFrame(animate);
     return () => {
       cancelAnimationFrame(frameRef.current);
-      if (titleHoldTimer) window.clearTimeout(titleHoldTimer);
+      if (titleFrame) cancelAnimationFrame(titleFrame);
       window.removeEventListener('portfolio:intro-start', handleIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };
