@@ -12,6 +12,7 @@ export const Hero: React.FC = () => {
   const reducedMotionRef = useRef(false);
   const swingLimitRef = useRef(35);
   const physicsRef = useRef({ angle: 0, velocity: 2.8, dragging: false, lastAngle: 0 });
+  const startLoopRef = useRef<() => void>(() => {});
 
   const swingLimit = () => swingLimitRef.current;
 
@@ -32,6 +33,7 @@ export const Hero: React.FC = () => {
     physics.velocity = 0;
     event.currentTarget.setPointerCapture(event.pointerId);
     setIsDragging(true);
+    startLoopRef.current();
   };
 
   const dragCard = (event: React.PointerEvent<HTMLElement>) => {
@@ -51,6 +53,7 @@ export const Hero: React.FC = () => {
       physics.angle = 0;
       physics.velocity = 0;
     }
+    startLoopRef.current();
   };
 
   const swingWithKeyboard = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -65,6 +68,7 @@ export const Hero: React.FC = () => {
       physics.velocity = reducedMotionRef.current ? 0 : direction * 1.8;
     }
     else return;
+    startLoopRef.current();
     event.preventDefault();
   };
 
@@ -105,29 +109,46 @@ export const Hero: React.FC = () => {
     motionPreference.addEventListener('change', handleMotionPreference);
 
     let frame = 0;
-    const animate = () => {
+    let lastTime = 0;
+    const animate = (now: number) => {
       const physics = physicsRef.current;
-      if (!physics.dragging && !pausedRef.current) {
-        if (reducedMotionRef.current) {
-          physics.velocity = 0;
-        } else {
-          physics.velocity = (physics.velocity - physics.angle * 0.012) * 0.99;
-          physics.angle += physics.velocity;
-          const limit = swingLimit();
-          if (Math.abs(physics.angle) > limit) {
-            physics.angle = Math.sign(physics.angle) * limit;
-            physics.velocity *= -0.42;
-          }
-          if (Math.abs(physics.angle) < 0.015 && Math.abs(physics.velocity) < 0.015) {
-            physics.angle = 0;
-            physics.velocity = 0;
-          }
+      const dt = lastTime ? Math.min(2.5, (now - lastTime) / 16.667) : 1;
+      lastTime = now;
+      let moving = false;
+      if (physics.dragging) {
+        moving = true;
+      } else if (!pausedRef.current && !reducedMotionRef.current) {
+        physics.velocity = (physics.velocity - physics.angle * 0.012 * dt) * Math.pow(0.99, dt);
+        physics.angle += physics.velocity * dt;
+        const limit = swingLimit();
+        if (Math.abs(physics.angle) > limit) {
+          physics.angle = Math.sign(physics.angle) * limit;
+          physics.velocity *= -0.42;
         }
+        if (Math.abs(physics.angle) < 0.015 && Math.abs(physics.velocity) < 0.015) {
+          physics.angle = 0;
+          physics.velocity = 0;
+        }
+        moving = physics.angle !== 0 || physics.velocity !== 0;
+      } else {
+        physics.velocity = 0;
       }
-      if (pendulumRef.current) pendulumRef.current.style.transform = `rotate(${physics.angle.toFixed(3)}deg)`;
-      frame = requestAnimationFrame(animate);
+      if (pendulumRef.current) pendulumRef.current.style.transform = `rotate(${physics.angle.toFixed(2)}deg)`;
+      if (moving) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        frame = 0;
+        lastTime = 0;
+      }
     };
-    frame = requestAnimationFrame(animate);
+    // The loop only runs while the card is moving, so it costs nothing when idle.
+    startLoopRef.current = () => {
+      if (!frame) {
+        lastTime = 0;
+        frame = requestAnimationFrame(animate);
+      }
+    };
+    startLoopRef.current();
 
     return () => {
       cancelAnimationFrame(frame);
@@ -139,6 +160,7 @@ export const Hero: React.FC = () => {
   const toggleMotion = () => setMotionPaused((paused) => {
     pausedRef.current = !paused;
     if (!paused) physicsRef.current.velocity = 0;
+    startLoopRef.current();
     return !paused;
   });
 

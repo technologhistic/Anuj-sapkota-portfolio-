@@ -49,7 +49,7 @@ export default function App() {
 
   useGSAP(() => {
     if (!welcomeOpen) return;
-    const intro = gsap.timeline({ onComplete: closeWelcome });
+    const intro = gsap.timeline({ paused: true, onComplete: closeWelcome });
     const typing = { progress: 0 };
     let visibleLetters = 0;
     intro
@@ -57,7 +57,7 @@ export default function App() {
       .fromTo('.welcome-kicker', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power2.out' }, '-=0.2')
       .to(typing, {
         progress: 4,
-        duration: 0.36,
+        duration: 0.95,
         ease: 'none',
         onUpdate: () => {
           const nextCount = Math.floor(typing.progress);
@@ -69,8 +69,13 @@ export default function App() {
       }, '-=0.06')
       .fromTo('.welcome-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: 'power2.inOut' }, '-=0.15')
       .fromTo('.welcome-caption', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.28, ease: 'power2.out' }, '-=0.12')
-      .to('.welcome-screen', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=0.62');
-    return () => intro.kill();
+      .to('.welcome-screen', { autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, '+=1.2');
+    // Start after fonts are ready (or after 1.2s at most) so the typing is not skipped by load jank.
+    let started = false;
+    const go = () => { if (!started) { started = true; intro.play(); } };
+    document.fonts?.ready.then(go);
+    const fallback = window.setTimeout(go, 1200);
+    return () => { window.clearTimeout(fallback); intro.kill(); };
   }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
 
   useGSAP(() => {
