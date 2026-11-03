@@ -20,7 +20,7 @@ const prefersReducedMotion = () => typeof window !== 'undefined'
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
-  const [welcomeOpen, setWelcomeOpen] = useState(() => !prefersReducedMotion());
+  const [welcomeOpen, setWelcomeOpen] = useState(true);
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
   const closeWelcome = useCallback(() => {
@@ -49,18 +49,11 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  useGSAP(() => {
+  useEffect(() => {
     if (!welcomeOpen) return;
-    const letters = gsap.utils.toArray<HTMLElement>('.welcome-letter');
-    gsap.set(letters, { autoAlpha: 0, yPercent: 32, scale: 0.84, filter: 'blur(12px)' });
-    const intro = gsap.timeline({ onComplete: closeWelcome });
-    intro
-      .to(letters, { autoAlpha: 1, yPercent: 0, scale: 1, filter: 'blur(0px)', duration: 0.9, stagger: 0.22, ease: 'power3.out' }, 0.45)
-      .fromTo('.welcome-rule', { scaleX: 0, autoAlpha: 0 }, { scaleX: 1, autoAlpha: 1, duration: 0.8, ease: 'power2.out' }, 1.3)
-      .fromTo('.welcome-caption', { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out' }, 1.5)
-      .to('.welcome-screen', { autoAlpha: 0, duration: 0.8, ease: 'power2.inOut' }, 2.7);
-    return () => intro.kill();
-  }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
+    const timer = window.setTimeout(closeWelcome, 3500);
+    return () => window.clearTimeout(timer);
+  }, [closeWelcome, welcomeOpen]);
 
   useGSAP(() => {
     if (welcomeOpen) return;
@@ -115,7 +108,7 @@ export default function App() {
     <div className="app-shell" ref={pageRef}>
       {welcomeOpen && <div className="welcome-screen" role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
         <div className="welcome-content">
-          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" aria-hidden="true">{letter}</span>)}</h1>
+          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" style={{ '--intro-index': index } as React.CSSProperties} aria-hidden="true">{letter}</span>)}</h1>
           <span className="welcome-rule" aria-hidden="true" />
           <p className="welcome-caption">CREATIVE DEVELOPER</p>
         </div>
