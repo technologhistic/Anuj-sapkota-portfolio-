@@ -3,13 +3,25 @@ import { ArrowUpRight, GraduationCap } from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
 
 export const EducationSection: React.FC = () => (
-  <section id="education" className="border-b border-[#d7d2c7] bg-[#ebe7dc] py-20 sm:py-28 lg:py-32">
-    <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-12 lg:gap-14 lg:px-12">
-      <div className="lg:col-span-3"><span className="font-mono text-[10px] uppercase tracking-[.16em] text-[#3548c3]">04 / Education</span></div>
-      <div className="grid gap-6 border-t border-[#cfc9bc] pt-6 sm:grid-cols-[52px_1fr_auto] sm:items-start lg:col-span-9">
-        <span className="grid h-11 w-11 place-items-center bg-[#3548c3] text-white"><GraduationCap size={19} /></span>
-        <div><p className="font-serif text-3xl leading-tight text-[#1d1d1a] sm:text-4xl">+2 in Computer Science</p><p className="mt-2 text-sm text-[#55554e]">{PERSONAL_INFO.institution}</p><p className="mt-4 max-w-xl text-sm leading-7 text-[#61615a]">My formal studies are one part of my development. I’m also learning through experimentation and building software projects.</p></div>
-        <span className="inline-flex min-h-11 items-center gap-1 text-xs text-[#3548c3] sm:justify-self-end">Nepal <ArrowUpRight size={13} /></span>
+  <section id="journey" className="section section--journey" aria-labelledby="journey-title">
+    <div className="page-shell journey-layout">
+      <div className="section-side" data-reveal>
+        <p className="eyebrow"><span className="section-number">04</span> EDUCATION &amp; JOURNEY</p>
+        <h2 id="journey-title" className="section-heading">Still at the <span className="text-silver">beginning.</span></h2>
+        <p className="section-intro">My work and learning are evolving. I’m sharing the journey as it happens.</p>
+      </div>
+
+      <div className="journey-track">
+        <article className="journey-entry" data-reveal>
+          <span className="journey-entry__marker"><GraduationCap size={19} aria-hidden="true" /></span>
+          <div><span className="eyebrow">FORMAL EDUCATION</span><h3>+2 Computer Science</h3><p>{PERSONAL_INFO.institution}</p><span className="journey-entry__meta">Nepal</span></div>
+          <ArrowUpRight className="journey-entry__arrow" size={18} aria-hidden="true" />
+        </article>
+        <article className="journey-entry" data-reveal>
+          <span className="journey-entry__marker journey-entry__marker--dot" aria-hidden="true" />
+          <div><span className="eyebrow">CURRENT FOCUS</span><h3>Learn through building</h3><p>Exploring web development, application development, and the foundations of full-stack software through public projects.</p><a className="text-link" href="#projects">See the repositories <ArrowUpRight size={14} aria-hidden="true" /></a></div>
+          <span className="journey-entry__meta">ONGOING</span>
+        </article>
       </div>
     </div>
   </section>

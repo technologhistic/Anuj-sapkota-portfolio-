@@ -1,9 +1,16 @@
 import React from 'react';
-import { ArrowUp } from 'lucide-react';
-import { PERSONAL_INFO } from '../data/portfolioData';
+import { ArrowUp, Github, Mail } from 'lucide-react';
+import { CONTACT_EMAIL, GITHUB_URL, PERSONAL_INFO } from '../data/portfolioData';
 
 export const Footer: React.FC = () => (
-  <footer className="border-t border-[#d7d2c7]">
-    <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-6 font-mono text-[9px] uppercase tracking-[.13em] text-[#61615a] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12"><span><span className="text-[#3548c3]">{PERSONAL_INFO.brand}</span><span className="mx-2">/</span>{PERSONAL_INFO.name}</span><span>Learn. Build. Experiment. Improve.</span><a href="#hero" className="inline-flex min-h-11 items-center gap-2 self-start transition-colors hover:text-[#3548c3] sm:self-auto">Back to top <ArrowUp size={12} /></a></div>
+  <footer className="site-footer">
+    <div className="page-shell footer-main">
+      <div><a className="footer-brand" href="#home">{PERSONAL_INFO.brand}<span> / {PERSONAL_INFO.name}</span></a><p>{PERSONAL_INFO.philosophy}</p></div>
+      <nav className="footer-nav" aria-label="Footer navigation">
+        <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#journey">Journey</a><a href="#contact">Contact</a>
+      </nav>
+      <div className="footer-socials"><a href={GITHUB_URL} target="_blank" rel="noreferrer"><Github size={15} aria-hidden="true" /> GitHub</a><a href={`mailto:${CONTACT_EMAIL}`}><Mail size={15} aria-hidden="true" /> Email</a></div>
+    </div>
+    <div className="page-shell footer-bottom"><span>© {new Date().getFullYear()} {PERSONAL_INFO.name} · Nepal</span><a href="#home">Back to top <ArrowUp size={14} aria-hidden="true" /></a></div>
   </footer>
 );
