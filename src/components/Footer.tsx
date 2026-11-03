@@ -5,7 +5,7 @@ import { CONTACT_EMAIL, GITHUB_URL, PERSONAL_INFO } from '../data/portfolioData'
 export const Footer: React.FC = () => (
   <footer className="site-footer">
     <div className="page-shell footer-main">
-      <div><a className="footer-brand" href="#home">{PERSONAL_INFO.brand}<span> / {PERSONAL_INFO.name}</span></a><p>{PERSONAL_INFO.philosophy}</p></div>
+      <div><a className="footer-brand" href="#home">{PERSONAL_INFO.name}<span> / PORTFOLIO</span></a><p>{PERSONAL_INFO.philosophy}</p></div>
       <nav className="footer-nav" aria-label="Footer navigation">
         <a href="#about">About</a><a href="#skills">Skills</a><a href="#projects">Projects</a><a href="#journey">Journey</a><a href="#contact">Contact</a>
       </nav>

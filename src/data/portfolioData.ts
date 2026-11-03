@@ -3,7 +3,6 @@ export const CONTACT_EMAIL = 'anujminer@gmail.com';
 
 export const PERSONAL_INFO = {
   name: 'Anuj Sapkota',
-  brand: 'BUILD WITH ONYX',
   title: '+2 Computer Science student · Software development',
   location: 'Nepal',
   institution: 'Liberty Secondary School (Liberty SS College)',

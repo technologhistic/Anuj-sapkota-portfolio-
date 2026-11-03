@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -17,7 +17,21 @@ const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
+  const [welcomeOpen, setWelcomeOpen] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const pageRef = useRef<HTMLDivElement>(null);
+  const welcomeSkipRef = useRef<HTMLButtonElement>(null);
+  const closeWelcome = useCallback(() => {
+    const skipHadFocus = welcomeSkipRef.current === document.activeElement;
+    setWelcomeOpen(false);
+    if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!welcomeOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [welcomeOpen]);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -33,6 +47,20 @@ export default function App() {
   }, []);
 
   useGSAP(() => {
+    if (!welcomeOpen) return;
+    const intro = gsap.timeline({ onComplete: closeWelcome });
+    intro
+      .fromTo('.welcome-halo', { autoAlpha: 0, scale: 0.82, rotate: -14 }, { autoAlpha: 1, scale: 1, rotate: 0, duration: 0.8, ease: 'power2.out' })
+      .fromTo('.welcome-kicker', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.38, ease: 'power2.out' }, '-=0.36')
+      .fromTo('.welcome-name span', { autoAlpha: 0, yPercent: 115, rotateX: -45 }, { autoAlpha: 1, yPercent: 0, rotateX: 0, duration: 0.76, stagger: 0.09, ease: 'power3.out' }, '-=0.08')
+      .fromTo('.welcome-rule', { scaleX: 0 }, { scaleX: 1, duration: 0.48, ease: 'power2.inOut' }, '-=0.4')
+      .fromTo('.welcome-caption', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.34, ease: 'power2.out' }, '-=0.22')
+      .to('.welcome-screen', { yPercent: -100, duration: 0.64, ease: 'power3.inOut' }, '+=0.28');
+    return () => intro.kill();
+  }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
+
+  useGSAP(() => {
+    if (welcomeOpen) return;
     const media = gsap.matchMedia();
     media.add('(prefers-reduced-motion: no-preference)', () => {
       const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -63,15 +91,27 @@ export default function App() {
       });
     });
     return () => media.revert();
-  }, { scope: pageRef });
+  }, { scope: pageRef, dependencies: [welcomeOpen], revertOnUpdate: true });
 
   return (
     <div className="app-shell" ref={pageRef}>
-      <a className="skip-link" href="#main-content">Skip to content</a>
-      <div className="scroll-progress" aria-hidden="true" />
-      <Navigation activeSection={activeSection} />
-      <main id="main-content"><Hero /><AboutSection /><SkillsSection /><ProjectsSection /><EducationSection /><ContactSection /></main>
-      <Footer />
+      {welcomeOpen && <div className="welcome-screen" role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
+        <div className="welcome-halo" aria-hidden="true" />
+        <div className="welcome-content">
+          <p className="welcome-kicker">WELCOME TO MY PORTFOLIO</p>
+          <h1 className="welcome-name" aria-label="Anuj"><span aria-hidden="true">A</span><span aria-hidden="true">n</span><span aria-hidden="true">u</span><span aria-hidden="true">j</span></h1>
+          <span className="welcome-rule" aria-hidden="true" />
+          <p className="welcome-caption">ANUJ SAPKOTA <span aria-hidden="true">/</span> NEPAL</p>
+        </div>
+        <button ref={welcomeSkipRef} className="welcome-skip" type="button" onClick={closeWelcome}>Skip intro <span aria-hidden="true">↗</span></button>
+      </div>}
+      <div className="portfolio-content" inert={welcomeOpen}>
+        <a className="skip-link" href="#main-content">Skip to content</a>
+        <div className="scroll-progress" aria-hidden="true" />
+        <Navigation activeSection={activeSection} />
+        <main id="main-content"><Hero /><AboutSection /><SkillsSection /><ProjectsSection /><EducationSection /><ContactSection /></main>
+        <Footer />
+      </div>
     </div>
   );
 }

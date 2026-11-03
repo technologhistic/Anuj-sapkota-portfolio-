@@ -18,8 +18,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeSection }) => {
 
   return (
     <header className="site-header">
-      <a href="#home" className="wordmark" aria-label={`${PERSONAL_INFO.brand}, home`} onClick={closeMenu}>
-        <span>{PERSONAL_INFO.brand}</span><small>{PERSONAL_INFO.name}</small>
+      <a href="#home" className="wordmark" aria-label={`${PERSONAL_INFO.name}, home`} onClick={closeMenu}>
+        <span>{PERSONAL_INFO.name}</span><small>PORTFOLIO</small>
       </a>
       <nav className={`primary-nav${open ? ' primary-nav--open' : ''}`} id="primary-navigation" aria-label="Main navigation">
         {links.map((link) => <a key={link.href} href={link.href} onClick={closeMenu} aria-current={activeSection === link.href.slice(1) ? 'location' : undefined}>{link.label}</a>)}

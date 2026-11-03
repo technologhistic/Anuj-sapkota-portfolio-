@@ -34,13 +34,13 @@ export const Hero: React.FC = () => {
     <section id="home" className="hero-section" aria-labelledby="hero-title">
       <div className="hero-scene" aria-hidden="true">
         <div className="hero-metal-ring" />
-        <span className="scene-index">ONYX / 001</span>
+        <span className="scene-index">PORTFOLIO / 001</span>
       </div>
 
       <div className="page-shell hero-layout">
         <div className="hero-copy">
           <p className="eyebrow hero-kicker"><span className="eyebrow-rule" />CS STUDENT · WEB & APP DEVELOPMENT · NEPAL</p>
-          <h1 id="hero-title" className="hero-title">
+          <h1 id="hero-title" className="hero-title" tabIndex={-1}>
             <span className="hero-title-line"><span>ANUJ</span></span>
             <span className="hero-title-line hero-title-line--silver"><span>SAPKOTA</span></span>
           </h1>
@@ -71,9 +71,12 @@ export const Hero: React.FC = () => {
               onKeyDown={tiltWithKeyboard}
               onBlur={(event) => resetTilt(event.currentTarget)}
             >
-              <div className="portrait-card__topline"><span>BUILD WITH ONYX</span><span>NEPAL</span></div>
+              <div className="portrait-card__topline"><span>ANUJ SAPKOTA</span><span>NEPAL</span></div>
               <div className="portrait-image-frame">
-                <img src="/anuj-photo.png" alt="Portrait of Anuj Sapkota" width="1335" height="1180" fetchPriority="high" />
+                <picture>
+                  <source srcSet="/anuj-photo.webp" type="image/webp" />
+                  <img src="/anuj-photo.png" alt="Portrait of Anuj Sapkota" width="1343" height="1171" fetchPriority="high" />
+                </picture>
                 <span className="portrait-image-mark" aria-hidden="true">AS / 01</span>
               </div>
               <div className="portrait-card__identity">
