@@ -2,32 +2,37 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUpRight, Pause, Play } from 'lucide-react';
 import { CONTACT_EMAIL, PERSONAL_INFO } from '../data/portfolioData';
 
-type CardSpring = { x: number; y: number; vx: number; vy: number; targetX: number; targetY: number; lightX: number; lightY: number };
+type CardSpring = {
+  x: number; y: number; z: number; vx: number; vy: number; vz: number;
+  inputX: number; inputY: number; lightX: number; lightY: number;
+  targetLightX: number; targetLightY: number;
+};
 
 export const Hero: React.FC = () => {
   const [motionPaused, setMotionPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
-  const lanyardRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLElement>(null);
-  const springRef = useRef<CardSpring>({ x: 0, y: 0, vx: 0, vy: 0, targetX: 0, targetY: 0, lightX: 50, lightY: 50 });
+  const pendulumRef = useRef<HTMLDivElement>(null);
+  const springRef = useRef<CardSpring>({
+    x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, inputX: 0, inputY: 0,
+    lightX: 50, lightY: 50, targetLightX: 50, targetLightY: 50,
+  });
   const pausedRef = useRef(false);
-  const reducedMotionRef = useRef(false);
   const draggingRef = useRef(false);
-  const startSpringRef = useRef<() => void>(() => {});
+  const frameRef = useRef(0);
 
   const moveLight = (clientX: number, clientY: number) => {
     const stage = stageRef.current;
-    if (!stage || pausedRef.current || reducedMotionRef.current) return;
+    if (!stage || pausedRef.current) return;
     const rect = stage.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
     const y = Math.max(-1, Math.min(1, ((clientY - rect.top) / rect.height) * 2 - 1));
     const spring = springRef.current;
-    spring.targetX = -y * 12;
-    spring.targetY = x * 15;
-    spring.lightX = (x + 1) * 50;
-    spring.lightY = (y + 1) * 50;
-    startSpringRef.current();
+    spring.inputX = -y * 18;
+    spring.inputY = x * 22;
+    spring.targetLightX = (x + 1) * 50;
+    spring.targetLightY = (y + 1) * 50;
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
@@ -43,47 +48,50 @@ export const Hero: React.FC = () => {
       draggingRef.current = false;
       setIsDragging(false);
     }
-    springRef.current.targetX = 0;
-    springRef.current.targetY = 0;
-    startSpringRef.current();
+    springRef.current.inputX = 0;
+    springRef.current.inputY = 0;
+    springRef.current.targetLightX = 50;
+    springRef.current.targetLightY = 50;
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape') {
-      springRef.current.targetX = 0;
-      springRef.current.targetY = 0;
-      startSpringRef.current();
+      springRef.current.inputX = 0;
+      springRef.current.inputY = 0;
     } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      springRef.current.targetY = event.key === 'ArrowLeft' ? -10 : 10;
-      startSpringRef.current();
+      springRef.current.inputY = event.key === 'ArrowLeft' ? -10 : 10;
       event.preventDefault();
     } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-      springRef.current.targetX = event.key === 'ArrowUp' ? 8 : -8;
-      startSpringRef.current();
+      springRef.current.inputX = event.key === 'ArrowUp' ? 8 : -8;
       event.preventDefault();
     }
   };
 
   useEffect(() => {
-    const motionPreference = typeof window.matchMedia === 'function'
-      ? window.matchMedia('(prefers-reduced-motion: reduce)')
-      : null;
-    reducedMotionRef.current = motionPreference?.matches ?? false;
-    let frame = 0;
     let lastTime = 0;
-
     const animate = (now: number) => {
       const spring = springRef.current;
-      const dt = lastTime ? Math.min(2, (now - lastTime) / 16.667) : 1;
+      const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
       lastTime = now;
-      const stiffness = reducedMotionRef.current || pausedRef.current ? 0 : 0.12;
-      const damping = Math.pow(0.72, dt);
-      spring.vx = (spring.vx + (spring.targetX - spring.x) * stiffness * dt) * damping;
-      spring.vy = (spring.vy + (spring.targetY - spring.y) * stiffness * dt) * damping;
-      spring.x += spring.vx * dt;
-      spring.y += spring.vy * dt;
-      if (Math.abs(spring.x) < 0.015 && Math.abs(spring.vx) < 0.015) spring.x = spring.vx = 0;
-      if (Math.abs(spring.y) < 0.015 && Math.abs(spring.vy) < 0.015) spring.y = spring.vy = 0;
+      const time = now / 1000;
+      const idleScale = pausedRef.current ? 0 : 1;
+      const idleX = Math.sin(time * 1.1) * 1.35 * idleScale;
+      const idleY = Math.sin(time * 0.82 + 0.7) * 1.8 * idleScale;
+      const idleZ = Math.sin(time * 0.92) * 2.1 * idleScale;
+      const targetX = idleX + (pausedRef.current ? 0 : spring.inputX);
+      const targetY = idleY + (pausedRef.current ? 0 : spring.inputY);
+      const targetZ = idleZ + (pausedRef.current ? 0 : spring.inputY * 0.12);
+      const stiffness = (draggingRef.current ? 0.13 : 0.075) * dt;
+      const damping = Math.pow(0.78, dt);
+      spring.vx = (spring.vx + (targetX - spring.x) * stiffness) * damping;
+      spring.vy = (spring.vy + (targetY - spring.y) * stiffness) * damping;
+      spring.vz = (spring.vz + (targetZ - spring.z) * stiffness) * damping;
+      spring.x += spring.vx;
+      spring.y += spring.vy;
+      spring.z += spring.vz;
+      const lightStiffness = 0.14 * dt;
+      spring.lightX += (spring.targetLightX - spring.lightX) * lightStiffness;
+      spring.lightY += (spring.targetLightY - spring.lightY) * lightStiffness;
 
       const card = cardRef.current;
       if (card) {
@@ -92,40 +100,14 @@ export const Hero: React.FC = () => {
         card.style.setProperty('--light-x', `${spring.lightX.toFixed(1)}%`);
         card.style.setProperty('--light-y', `${spring.lightY.toFixed(1)}%`);
       }
-      if (lanyardRef.current) {
-        lanyardRef.current.style.setProperty('--lanyard-sway', `${(spring.y * 0.12).toFixed(2)}deg`);
+      if (pendulumRef.current) {
+        pendulumRef.current.style.setProperty('--swing-angle', `${spring.z.toFixed(2)}deg`);
       }
-      if (spring.x || spring.y || spring.vx || spring.vy || spring.targetX || spring.targetY) {
-        frame = requestAnimationFrame(animate);
-      } else {
-        frame = 0;
-        lastTime = 0;
-      }
+      frameRef.current = requestAnimationFrame(animate);
     };
-    const startSpring = () => {
-      if (!frame) {
-        lastTime = 0;
-        frame = requestAnimationFrame(animate);
-      }
-    };
-    startSpringRef.current = startSpring;
-    startSpring();
-
-    const handleMotionPreference = (event: MediaQueryListEvent) => {
-      reducedMotionRef.current = event.matches;
-      if (event.matches) {
-        springRef.current.targetX = 0;
-        springRef.current.targetY = 0;
-        startSpring();
-      }
-    };
-    motionPreference?.addEventListener?.('change', handleMotionPreference);
-    if (motionPreference && !motionPreference.addEventListener) motionPreference.addListener(handleMotionPreference);
+    frameRef.current = requestAnimationFrame(animate);
     return () => {
-      cancelAnimationFrame(frame);
-      startSpringRef.current = () => {};
-      motionPreference?.removeEventListener?.('change', handleMotionPreference);
-      if (motionPreference && !motionPreference.removeEventListener) motionPreference.removeListener(handleMotionPreference);
+      cancelAnimationFrame(frameRef.current);
     };
   }, []);
 
@@ -133,9 +115,10 @@ export const Hero: React.FC = () => {
     const next = !paused;
     pausedRef.current = next;
     if (next) {
-      springRef.current.targetX = 0;
-      springRef.current.targetY = 0;
-      startSpringRef.current();
+      springRef.current.inputX = 0;
+      springRef.current.inputY = 0;
+      springRef.current.targetLightX = 50;
+      springRef.current.targetLightY = 50;
     }
     return next;
   });
@@ -177,8 +160,8 @@ export const Hero: React.FC = () => {
         >
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
-          <div className={`portrait-pendulum${isDragging ? ' portrait-pendulum--active' : ''}`}>
-            <div className="portrait-lanyard-system" ref={lanyardRef}>
+          <div className="portrait-pendulum" ref={pendulumRef}>
+            <div className="portrait-lanyard-system">
               <div className="portrait-strap" aria-hidden="true" />
               <div className="portrait-clip" aria-hidden="true" />
             </div>
