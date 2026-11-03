@@ -155,7 +155,7 @@ export const SkillsSection: React.FC = () => {
   return (
     <section id="skills" className="section section--skills" aria-labelledby="skills-title">
       <div className="page-shell">
-        <div className="section-header" data-reveal>
+        <div className="section-header">
           <div><p className="eyebrow"><span className="section-number">02</span> SKILLS &amp; CURIOSITY</p><h2 id="skills-title" className="section-heading">What I’m <span className="text-silver">exploring.</span></h2></div>
           <p className="section-intro">Hands-on technologies surfaced in my public repositories, alongside the areas I’m learning about.</p>
         </div>
@@ -196,7 +196,7 @@ export const SkillsSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="language-ledger" data-reveal>
+        <div className="language-ledger">
           <div><span className="eyebrow">LANGUAGE METADATA</span><p>Languages appearing in the public repositories</p></div>
           <ul>{REPOSITORY_LANGUAGES.map((language) => <li key={language}>{language}<span aria-hidden="true"> /</span></li>)}</ul>
         </div>
