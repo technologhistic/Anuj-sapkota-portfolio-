@@ -104,8 +104,9 @@ p { text-wrap: pretty; }
 .hero-bottomline a { color: #aaa; letter-spacing: 0; text-transform: none; }
 .hero-bottomline a:hover { color: var(--white); }
 .hero-portrait-wrap { position: relative; z-index: 2; width: 100%; max-width: 440px; min-height: 520px; margin-inline: auto; }
-.portrait-pendulum { position: absolute; z-index: 1; top: 0; left: 50%; width: 0; height: 0; transform-origin: 0 0; animation: id-card-float 5.2s ease-in-out infinite; will-change: transform; }
-@keyframes id-card-float { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(5px); } }
+.portrait-pendulum { position: absolute; z-index: 1; top: 0; left: 50%; width: 0; height: 0; transform-origin: 0 0; animation: id-card-hang 4.8s cubic-bezier(.42,0,.58,1) infinite; will-change: transform; }
+.portrait-pendulum--active { animation-play-state: paused; }
+@keyframes id-card-hang { 0%, 100% { transform: rotate(-2.1deg); } 50% { transform: rotate(2.1deg); } }
 .portrait-strap { position: absolute; top: 0; left: -9px; width: 18px; height: 9rem; border: 1px solid #777; border-radius: 0 0 5px 5px; background: linear-gradient(90deg, #3b3b3b, #e4e4e4 48%, #858585 56%, #303030); box-shadow: 0 2px 12px rgba(255,255,255,.11); }
 .portrait-clip { position: absolute; top: calc(9rem - 6px); left: -12px; z-index: 2; width: 24px; height: 23px; border: 1px solid #aaa; border-radius: 4px 4px 7px 7px; background: linear-gradient(110deg, #494949, #d5d5d5 47%, #696969); box-shadow: 0 4px 9px rgba(0,0,0,.48), inset 0 1px rgba(255,255,255,.52); }
 .portrait-card { --tilt-x: 0deg; --tilt-y: 0deg; --light-x: 50%; --light-y: 50%; position: absolute; top: 9rem; left: 0; display: flex; flex-direction: column; width: min(18.5rem, 70vw); height: 23.5rem; padding: 1rem .9rem .7rem; overflow: hidden; border: 1px solid rgba(220,220,220,.58); border-radius: 1rem; color: var(--highlight); background: linear-gradient(155deg, rgba(39,39,39,.96), rgba(12,12,12,.98) 56%, rgba(25,25,25,.97)); box-shadow: 0 24px 50px rgba(0,0,0,.62), inset 0 1px rgba(255,255,255,.22), 0 0 28px rgba(210,210,210,.09); transform: perspective(900px) translateX(-50%) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)); transform-style: preserve-3d; backface-visibility: hidden; transition: border-color .25s ease, box-shadow .35s ease; cursor: grab; touch-action: none; user-select: none; }

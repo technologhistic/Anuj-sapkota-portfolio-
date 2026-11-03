@@ -169,7 +169,7 @@ export const Hero: React.FC = () => {
         <div className="hero-portrait-wrap">
           <div className="portrait-orbit portrait-orbit--one" aria-hidden="true" />
           <div className="portrait-orbit portrait-orbit--two" aria-hidden="true" />
-          <div className="portrait-pendulum">
+          <div className={`portrait-pendulum${isDragging ? ' portrait-pendulum--active' : ''}`}>
             <div className="portrait-strap" aria-hidden="true" />
             <div className="portrait-clip" aria-hidden="true" />
             <article
