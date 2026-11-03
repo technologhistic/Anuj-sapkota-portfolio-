@@ -81,7 +81,7 @@ export default function App() {
           closeTimer = window.setTimeout(closeWelcome, 1000);
         }, 900);
       }
-    }, 90);
+    }, 260);
 
     return () => {
       window.clearInterval(typingTimer);
