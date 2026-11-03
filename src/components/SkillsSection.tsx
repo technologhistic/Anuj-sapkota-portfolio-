@@ -93,8 +93,12 @@ export const SkillsSection: React.FC = () => {
         const node = nodeRefs.current[index];
         const card = cardRefs.current[index];
         const nodeProgress = nodePoint.length / pathLength;
-        const reveal = clamp((value - nodeProgress + .055) / .1);
-        const glow = clamp((value - nodeProgress + .035) / .075);
+        const revealStart = Math.max(0, nodeProgress - .055);
+        const revealEnd = Math.min(1, nodeProgress + .045);
+        const reveal = clamp((value - revealStart) / Math.max(revealEnd - revealStart, .001));
+        const glowStart = Math.max(0, nodeProgress - .035);
+        const glowEnd = Math.min(1, nodeProgress + .04);
+        const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
         if (node) {
           node.style.setProperty('--node-glow', `${glow.toFixed(3)}`);
           node.classList.toggle('skills-timeline__node--lit', glow > .05);
