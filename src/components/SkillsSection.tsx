@@ -34,6 +34,7 @@ export const SkillsSection: React.FC = () => {
     const progressPath = progressPathRef.current;
     const particle = particleRef.current;
     if (!scene || !path || !progressPath || !particle) return;
+    scene.classList.add('skills-timeline--animated');
     const heading = headingRef.current;
 
     const pathLength = path.getTotalLength();
@@ -91,7 +92,7 @@ export const SkillsSection: React.FC = () => {
         const glow = clamp((value - nodeProgress + .035) / .075);
         if (node) {
           node.style.setProperty('--node-glow', `${glow.toFixed(3)}`);
-          node.classList.toggle('skill-node--lit', glow > .05);
+          node.classList.toggle('skills-timeline__node--lit', glow > .05);
         }
         if (card) {
           card.style.opacity = `${reveal.toFixed(3)}`;
@@ -103,13 +104,13 @@ export const SkillsSection: React.FC = () => {
 
     const calculateProgress = () => {
       const rect = scene.getBoundingClientRect();
-      return clamp((window.innerHeight - rect.top) / (rect.height + window.innerHeight));
+      return clamp((window.innerHeight * .82 - rect.top) / (rect.height - window.innerHeight * .18));
     };
 
     const calculateHeadingProgress = () => {
       if (!heading) return 1;
       const rect = heading.getBoundingClientRect();
-      return clamp((window.innerHeight - rect.top) / 180);
+      return clamp((window.innerHeight * .9 - rect.top) / Math.max(rect.height + window.innerHeight * .1, 1));
     };
 
     const animate = (now: number) => {
@@ -142,7 +143,7 @@ export const SkillsSection: React.FC = () => {
       headingProgress = targetHeadingProgress = 1;
       draw(1, 1);
       particle.style.opacity = '0';
-      nodeRefs.current.forEach((node) => node?.classList.add('skill-node--lit'));
+      nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
     };
 
     const handleMotionPreference = (event: MediaQueryListEvent) => {
@@ -163,12 +164,17 @@ export const SkillsSection: React.FC = () => {
     }
     window.addEventListener('scroll', updateFromScroll, { passive: true });
     window.addEventListener('resize', updateFromScroll);
+    window.addEventListener('load', updateFromScroll);
+    window.addEventListener('pageshow', updateFromScroll);
     prefersReducedMotion.addEventListener('change', handleMotionPreference);
 
     return () => {
+      scene.classList.remove('skills-timeline--animated');
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', updateFromScroll);
       window.removeEventListener('resize', updateFromScroll);
+      window.removeEventListener('load', updateFromScroll);
+      window.removeEventListener('pageshow', updateFromScroll);
       prefersReducedMotion.removeEventListener('change', handleMotionPreference);
     };
   }, []);

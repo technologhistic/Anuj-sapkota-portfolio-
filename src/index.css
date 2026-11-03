@@ -166,6 +166,8 @@ p { text-wrap: pretty; }
 .skills-timeline__node--lit { border-color: #eaf5ff; box-shadow: 0 0 0 5px rgba(255,255,255,.035), 0 0 18px rgba(110,180,255,.68), inset 0 0 12px rgba(185,215,255,.28); }
 .skills-timeline__node--lit > span { background: #fff; box-shadow: 0 0 8px 2px #9bceff; }
 .skill-item { position: absolute; top: var(--skill-node-y); z-index: 2; min-height: 218px; padding: clamp(1.2rem, 2.5vw, 2rem); border: 1px solid #333943; border-radius: 12px; background: linear-gradient(145deg, rgba(24,26,31,.96), rgba(9,10,13,.94) 72%); box-shadow: 0 18px 40px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.035); will-change: transform, opacity; }
+.skills-timeline:not(.skills-timeline--animated) .skill-item { opacity: 1; visibility: visible; transform: none; }
+.skills-timeline__node--lit { --node-glow: 1; }
 .skill-item::after { position: absolute; top: 0; width: 31%; border-top: 1px solid rgba(205,220,240,.42); content: ''; }
 .skill-item--left { left: 4%; width: 41%; }
 .skill-item--left::after { right: -31%; }

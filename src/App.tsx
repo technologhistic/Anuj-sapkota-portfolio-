@@ -24,9 +24,10 @@ export default function App() {
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
   const closeWelcome = useCallback(() => {
+    if (!welcomeOpen) return;
     const skipHadFocus = welcomeSkipRef.current === document.activeElement;
     setWelcomeOpen(false);
-    window.dispatchEvent(new Event('portfolio:intro-start'));
+    requestAnimationFrame(() => window.dispatchEvent(new Event('portfolio:intro-start')));
     if (skipHadFocus) requestAnimationFrame(() => document.getElementById('hero-title')?.focus());
   }, []);
 
@@ -52,7 +53,7 @@ export default function App() {
 
   useEffect(() => {
     if (!welcomeOpen) return;
-    const timer = window.setTimeout(closeWelcome, 3500);
+    const timer = window.setTimeout(closeWelcome, prefersReducedMotion() ? 0 : 3500);
     return () => window.clearTimeout(timer);
   }, [closeWelcome, welcomeOpen]);
 
