@@ -14,7 +14,7 @@ import { Footer } from './components/Footer';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const sections = ['home', 'about', 'skills', 'projects', 'journey', 'contact'];
-const INTRO_DURATION = 3000;
+const INTRO_TEXT = 'Anuj';
 const prefersReducedMotion = () => typeof window !== 'undefined'
   && typeof window.matchMedia === 'function'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,6 +22,8 @@ const prefersReducedMotion = () => typeof window !== 'undefined'
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [welcomeOpen, setWelcomeOpen] = useState(true);
+  const [introText, setIntroText] = useState('');
+  const [introClosing, setIntroClosing] = useState(false);
   const welcomeOpenRef = useRef(true);
   const pageRef = useRef<HTMLDivElement>(null);
   const welcomeSkipRef = useRef<HTMLButtonElement>(null);
@@ -60,11 +62,35 @@ export default function App() {
 
   useEffect(() => {
     if (!welcomeOpen) return;
-    const timer = window.setTimeout(
-      closeWelcome,
-      prefersReducedMotion() ? 0 : INTRO_DURATION,
-    );
-    return () => window.clearTimeout(timer);
+    setIntroText('');
+    setIntroClosing(false);
+
+    if (prefersReducedMotion()) {
+      setIntroText(INTRO_TEXT);
+      const timer = window.setTimeout(closeWelcome, 0);
+      return () => window.clearTimeout(timer);
+    }
+
+    let index = 0;
+    let holdTimer = 0;
+    let closeTimer = 0;
+    const typingTimer = window.setInterval(() => {
+      index += 1;
+      setIntroText(INTRO_TEXT.slice(0, index));
+      if (index >= INTRO_TEXT.length) {
+        window.clearInterval(typingTimer);
+        holdTimer = window.setTimeout(() => {
+          setIntroClosing(true);
+          closeTimer = window.setTimeout(closeWelcome, 1000);
+        }, 900);
+      }
+    }, 90);
+
+    return () => {
+      window.clearInterval(typingTimer);
+      window.clearTimeout(holdTimer);
+      window.clearTimeout(closeTimer);
+    };
   }, [closeWelcome, welcomeOpen]);
 
   useGSAP(() => {
@@ -116,9 +142,9 @@ export default function App() {
 
   return (
     <div className="app-shell" ref={pageRef}>
-      {welcomeOpen && <div className="welcome-screen" role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
+      {welcomeOpen && <div className={`welcome-screen${introClosing ? ' welcome-screen--closing' : ''}`} role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
         <div className="welcome-content">
-          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" style={{ '--intro-index': index } as React.CSSProperties} aria-hidden="true">{letter}</span>)}</h1>
+          <h1 className="welcome-name" aria-label="Anuj">{introText}<span className="welcome-cursor" aria-hidden="true" /></h1>
           <span className="welcome-rule" aria-hidden="true" />
           <p className="welcome-caption">CREATIVE DEVELOPER</p>
         </div>
