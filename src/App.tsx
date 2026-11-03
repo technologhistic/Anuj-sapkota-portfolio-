@@ -55,7 +55,9 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#090A0C] text-[#C5C7CC] selection:bg-[#F1F0EC] selection:text-[#090A0C]">
+    <div className="min-h-screen bg-[#F6F3EC] text-[#5C5952] selection:bg-[#24231F] selection:text-[#F6F3EC]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[#24231F] focus:px-4 focus:py-3 focus:text-sm focus:text-white">Skip to content</a>
+
       {/* Top Bar Navigation */}
       <Navigation
         activeSection={activeSection}
@@ -63,26 +65,26 @@ export default function App() {
       />
 
       {/* Main Content Sections */}
-      <main>
+      <main id="main-content">
         {/* 1. Hero */}
         <Hero onOpenResume={() => setIsResumeModalOpen(true)} />
 
         {/* About Me */}
         <AboutSection />
 
-        {/* 5. Technical Skills */}
+        {/* Skills */}
         <SkillsSection />
 
-        {/* 6. Education */}
+        {/* Education */}
         <EducationSection />
 
-        {/* 7. Achievements */}
+        {/* Achievements */}
         <AchievementsSection />
 
-        {/* 8. Downloadable Résumé */}
+        {/* Résumé */}
         <ResumeSection onOpenResumeModal={() => setIsResumeModalOpen(true)} />
 
-        {/* 9. Contact */}
+        {/* Contact */}
         <ContactSection />
       </main>
 

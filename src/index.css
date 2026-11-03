@@ -2,68 +2,102 @@
 
 @theme {
   --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
-  --color-obsidian: #090A0C;
-  --color-graphite: #14161A;
-  --color-graphite-elevated: #1B1E24;
-  --color-graphite-border: rgba(255, 255, 255, 0.08);
-  --color-silver: #C5C7CC;
-  --color-ivory: #F1F0EC;
-  --color-muted: #858997;
+  --color-canvas: #F6F3EC;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #EEE9DF;
+  --color-ink: #24231F;
+  --color-body: #5C5952;
+  --color-muted: #716B61;
+  --color-line: #DED7CA;
+  --color-accent: #8B5E34;
+  --color-accent-soft: #EFE3D1;
 }
 
 @layer base {
   html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background-color: #090A0C;
-    color: #C5C7CC;
-    font-family: var(--font-sans);
+    min-width: 320px;
     overflow-x: hidden;
-    line-height: 1.75;
+    background: var(--color-canvas);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    line-height: 1.7;
   }
 
   h1, h2, h3, h4, .font-editorial {
+    color: var(--color-ink);
     font-family: var(--font-serif);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
   p {
     text-wrap: pretty;
   }
+
+  a, button, input, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    min-height: 44px;
+    cursor: pointer;
+  }
+
+  input, select {
+    min-height: 44px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: #D9C2A5;
+    color: #24231F;
+  }
 }
 
-/* Editorial Serif & Italic Typography Utilities */
 .editorial-italic {
+  color: var(--color-accent);
   font-family: var(--font-serif);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 400;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #090A0C;
+  background: var(--color-canvas);
 }
 ::-webkit-scrollbar-thumb {
-  background: #252830;
-  border-radius: 3px;
+  background: #C7BDAE;
+  border: 2px solid var(--color-canvas);
+  border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #383D48;
+  background: #8B5E34;
 }
 
-/* Print Styles for Clean ATS Résumé Generation */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @media print {
   body {
     background: #ffffff !important;

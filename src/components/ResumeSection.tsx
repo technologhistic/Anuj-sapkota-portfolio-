@@ -18,7 +18,7 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
   };
 
   return (
-    <section id="resume" className="py-32 md:py-40 lg:py-48 border-b border-white/[0.06] relative">
+    <section id="resume" className="py-32 md:py-40 lg:py-48 border-b border-black/[0.06] relative">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header with Scroll Reveal */}
         <motion.div
@@ -26,13 +26,13 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-20 md:mb-24 pb-8 border-b border-white/[0.08]"
+          className="mb-20 md:mb-24 pb-8 border-b border-black/[0.08]"
         >
-          <span className="block text-[11px] uppercase font-mono tracking-[0.25em] text-[#858997] mb-3">
-            CHAPTER 07 // CURRICULUM VITAE
+          <span className="block text-[11px] uppercase font-mono tracking-[0.25em] text-[#716B61] mb-3">
+            05 / RÉSUMÉ
           </span>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#F1F0EC] tracking-tight leading-[1.1]">
-            Curriculum <span className="italic font-light text-[#C5C7CC]">Vitae</span> &amp; Credentials
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#24231F] tracking-tight leading-[1.1]">
+            Curriculum <span className="italic font-light text-[#5C5952]">Vitae</span> &amp; Credentials
           </h2>
         </motion.div>
 
@@ -42,43 +42,43 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#14161A]/70 border border-white/10 rounded-sm p-10 sm:p-14 lg:p-16 relative overflow-hidden shadow-2xl hover:border-white/20 transition-colors"
+          className="bg-[#FFFFFF]/70 border border-black/10 rounded-md p-10 sm:p-14 lg:p-16 relative overflow-hidden shadow-[0_24px_60px_-36px_rgba(36,35,31,0.32)] hover:border-black/20 transition-colors"
         >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Description Column */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="flex items-center gap-2.5 text-xs font-mono text-[#858997] tracking-wider uppercase">
-                <ShieldCheck className="w-4 h-4 text-[#F1F0EC]" />
-                <span className="text-[#F1F0EC] font-semibold">ATS-OPTIMIZED SPECIFICATION</span>
-                <span aria-hidden="true" className="text-white/20">/</span>
-                <span>2025 REVISION</span>
+              <div className="flex items-center gap-2.5 text-xs font-mono text-[#716B61] tracking-wider uppercase">
+                <ShieldCheck className="w-4 h-4 text-[#24231F]" />
+                <span className="text-[#24231F] font-semibold">ATS-OPTIMIZED SPECIFICATION</span>
+                <span aria-hidden="true" className="text-black/20">/</span>
+                <span>PRINT-READY FORMAT</span>
               </div>
 
-              <h3 className="text-3xl sm:text-4xl font-serif text-[#F1F0EC] leading-tight">
-                Engineering Experience, System Architecture &amp; Credentials
+              <h3 className="text-3xl sm:text-4xl font-serif text-[#24231F] leading-tight">
+                Education, skills and recognition
               </h3>
 
-              <p className="text-base sm:text-lg text-[#C5C7CC] font-light leading-[1.85] max-w-2xl">
-                A single-page, ATS-optimized engineering curriculum vitae outlining core competencies in TypeScript, Next.js, performance profiling, academic coursework, and hackathon milestones.
+              <p className="text-base sm:text-lg text-[#5C5952] font-light leading-[1.85] max-w-2xl">
+                A concise overview of my education, technical skills, and achievements, formatted for viewing or printing.
               </p>
 
               {/* Highlights List with Generous Spacing */}
-              <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono text-[#858997]">
+              <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono text-[#716B61]">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[#F1F0EC]">✓</span>
-                  <span>Parser &amp; screen-reader accessible</span>
+                  <span className="text-[#24231F]">✓</span>
+                  <span>Education and coursework</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[#F1F0EC]">✓</span>
-                  <span>Academic honors</span>
+                  <span className="text-[#24231F]">✓</span>
+                  <span>Technical skills</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[#F1F0EC]">✓</span>
-                  <span>Zero bloatware clean PDF render</span>
+                  <span className="text-[#24231F]">✓</span>
+                  <span>Achievements and recognition</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="text-[#F1F0EC]">✓</span>
-                  <span>Direct recruiter summary available</span>
+                  <span className="text-[#24231F]">✓</span>
+                  <span>Print-ready layout</span>
                 </div>
               </div>
             </div>
@@ -89,7 +89,7 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
                 whileHover={shouldReduceMotion ? {} : { y: -2 }}
                 whileTap={shouldReduceMotion ? {} : { y: 0 }}
                 onClick={onOpenResumeModal}
-                className="w-full inline-flex items-center justify-center gap-3 px-7 py-4 text-xs uppercase font-mono tracking-wider font-semibold text-[#090A0C] bg-[#F1F0EC] hover:bg-white rounded-sm transition-all shadow-md group"
+                className="w-full inline-flex items-center justify-center gap-3 px-7 py-4 text-xs uppercase font-mono tracking-wider font-semibold text-[#F6F3EC] bg-[#24231F] hover:bg-[#8B5E34] rounded-md transition-all shadow-md group"
               >
                 <Eye className="w-4 h-4" />
                 <span>View &amp; Print Résumé</span>
@@ -102,20 +102,20 @@ export const ResumeSection: React.FC<ResumeSectionProps> = ({ onOpenResumeModal 
                   onOpenResumeModal();
                   setTimeout(() => window.print(), 300);
                 }}
-                className="w-full inline-flex items-center justify-center gap-2.5 px-7 py-4 text-xs uppercase font-mono tracking-wider font-medium text-[#F1F0EC] bg-[#090A0C] hover:bg-[#1A1D24] border border-white/10 hover:border-white/20 rounded-sm transition-all shadow-sm"
+                className="w-full inline-flex items-center justify-center gap-2.5 px-7 py-4 text-xs uppercase font-mono tracking-wider font-medium text-[#24231F] bg-[#F6F3EC] hover:bg-[#EEE9DF] border border-black/10 hover:border-black/20 rounded-md transition-all shadow-sm"
               >
-                <Printer className="w-4 h-4 text-[#C5C7CC]" />
+                <Printer className="w-4 h-4 text-[#5C5952]" />
                 <span>Instant Print / PDF</span>
               </motion.button>
 
               <button
                 onClick={handleCopyEmail}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-xs font-mono text-[#858997] hover:text-[#F1F0EC] transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-xs font-mono text-[#716B61] hover:text-[#24231F] transition-colors"
               >
                 {copiedEmail ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[#F1F0EC]">Email Copied to Clipboard</span>
+                    <span className="text-[#24231F]">Email Copied to Clipboard</span>
                   </>
                 ) : (
                   <span>Copy Direct Contact Email</span>

@@ -67,7 +67,7 @@ export const ContactSection: React.FC = () => {
   };
 
   return (
-    <section id="contact" className="py-32 md:py-40 lg:py-48 border-b border-white/[0.06] relative bg-[#090A0C]">
+    <section id="contact" className="py-32 md:py-40 lg:py-48 border-b border-black/[0.06] relative bg-[#F6F3EC]">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header with Scroll Reveal */}
         <motion.div
@@ -75,13 +75,13 @@ export const ContactSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-20 md:mb-24 pb-8 border-b border-white/[0.08]"
+          className="mb-20 md:mb-24 pb-8 border-b border-black/[0.08]"
         >
-          <span className="block text-[11px] uppercase font-mono tracking-[0.25em] text-[#858997] mb-3">
-            CHAPTER 08 // INQUIRIES &amp; DISPATCHES
+          <span className="block text-[11px] uppercase font-mono tracking-[0.25em] text-[#716B61] mb-3">
+            06 / CONTACT
           </span>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#F1F0EC] tracking-tight leading-[1.1]">
-            Initiate <span className="italic font-light text-[#C5C7CC]">Dialogue</span>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-[#24231F] tracking-tight leading-[1.1]">
+            Initiate <span className="italic font-light text-[#8B5E34]">Dialogue</span>
           </h2>
         </motion.div>
 
@@ -95,17 +95,17 @@ export const ContactSection: React.FC = () => {
             className="lg:col-span-5 space-y-10"
           >
             <div className="space-y-4">
-              <h3 className="text-3xl sm:text-4xl font-serif text-[#F1F0EC] leading-snug">
+              <h3 className="text-3xl sm:text-4xl font-serif text-[#24231F] leading-snug">
                 Let's construct something meaningful together.
               </h3>
-              <p className="text-base sm:text-lg text-[#C5C7CC] font-light leading-[1.85]">
+              <p className="text-base sm:text-lg text-[#5C5952] font-light leading-[1.85]">
                 Currently open to frontend engineering positions, software engineering internships/roles, and select architectural consultations.
               </p>
             </div>
 
             {/* Direct Email Cards */}
             <div className="space-y-4">
-              <span className="block text-xs font-mono uppercase tracking-[0.2em] text-[#858997]">
+              <span className="block text-xs font-mono uppercase tracking-[0.2em] text-[#716B61]">
                 Primary Channels
               </span>
 
@@ -113,20 +113,20 @@ export const ContactSection: React.FC = () => {
               <motion.div
                 whileHover={shouldReduceMotion ? {} : { y: -2 }}
                 transition={{ duration: 0.15 }}
-                className="p-5 bg-[#14161A] border border-white/10 rounded-sm flex items-center justify-between group shadow-sm hover:border-white/20 transition-colors"
+                className="p-5 bg-[#FFFFFF] border border-black/10 rounded-md flex items-center justify-between group shadow-sm hover:border-black/20 transition-colors"
               >
                 <div className="space-y-1">
-                  <span className="text-[11px] font-mono text-[#858997] block uppercase tracking-wider">Direct &amp; Personal</span>
+                  <span className="text-[11px] font-mono text-[#716B61] block uppercase tracking-wider">Direct &amp; Personal</span>
                   <a
                     href={`mailto:${PERSONAL_INFO.email}`}
-                    className="text-xs sm:text-sm font-mono text-[#F1F0EC] hover:underline"
+                    className="text-xs sm:text-sm font-mono text-[#24231F] hover:underline"
                   >
                     {PERSONAL_INFO.email}
                   </a>
                 </div>
                 <button
                   onClick={() => handleCopy(PERSONAL_INFO.email, false)}
-                  className="p-2.5 text-[#858997] hover:text-[#F1F0EC] border border-white/5 hover:border-white/20 rounded-sm bg-[#090A0C] transition-colors"
+                  className="p-2.5 text-[#716B61] hover:text-[#24231F] border border-black/5 hover:border-black/20 rounded-md bg-[#F6F3EC] transition-colors"
                   title="Copy email address"
                 >
                   {copiedEmail ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -137,20 +137,20 @@ export const ContactSection: React.FC = () => {
               <motion.div
                 whileHover={shouldReduceMotion ? {} : { y: -2 }}
                 transition={{ duration: 0.15 }}
-                className="p-5 bg-[#14161A] border border-white/10 rounded-sm flex items-center justify-between group shadow-sm hover:border-white/20 transition-colors"
+                className="p-5 bg-[#FFFFFF] border border-black/10 rounded-md flex items-center justify-between group shadow-sm hover:border-black/20 transition-colors"
               >
                 <div className="space-y-1">
-                  <span className="text-[11px] font-mono text-[#858997] block uppercase tracking-wider">Official Domain</span>
+                  <span className="text-[11px] font-mono text-[#716B61] block uppercase tracking-wider">Official Domain</span>
                   <a
                     href={`mailto:${PERSONAL_INFO.secondaryEmail}`}
-                    className="text-xs sm:text-sm font-mono text-[#F1F0EC] hover:underline"
+                    className="text-xs sm:text-sm font-mono text-[#24231F] hover:underline"
                   >
                     {PERSONAL_INFO.secondaryEmail}
                   </a>
                 </div>
                 <button
                   onClick={() => handleCopy(PERSONAL_INFO.secondaryEmail, true)}
-                  className="p-2.5 text-[#858997] hover:text-[#F1F0EC] border border-white/5 hover:border-white/20 rounded-sm bg-[#090A0C] transition-colors"
+                  className="p-2.5 text-[#716B61] hover:text-[#24231F] border border-black/5 hover:border-black/20 rounded-md bg-[#F6F3EC] transition-colors"
                   title="Copy domain email"
                 >
                   {copiedSecondary ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -159,20 +159,20 @@ export const ContactSection: React.FC = () => {
             </div>
 
             {/* Location & Timezone Details */}
-            <div className="p-5 bg-[#14161A]/60 border border-white/[0.06] rounded-sm space-y-3 text-xs font-mono text-[#858997]">
+            <div className="p-5 bg-[#FFFFFF]/60 border border-black/[0.06] rounded-md space-y-3 text-xs font-mono text-[#716B61]">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-[#C5C7CC]">
-                  <MapPin className="w-4 h-4 text-[#858997]" />
+                <span className="flex items-center gap-2 text-[#5C5952]">
+                  <MapPin className="w-4 h-4 text-[#716B61]" />
                   <span>Kathmandu, Nepal</span>
                 </span>
                 <span>27.7172° N, 85.3240° E</span>
               </div>
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
-                <span className="flex items-center gap-2 text-[#C5C7CC]">
-                  <Clock className="w-4 h-4 text-[#858997]" />
+              <div className="flex items-center justify-between pt-3 border-t border-black/[0.05]">
+                <span className="flex items-center gap-2 text-[#5C5952]">
+                  <Clock className="w-4 h-4 text-[#716B61]" />
                   <span>Nepal Standard Time (NPT)</span>
                 </span>
-                <span className="text-[#F1F0EC] font-semibold tabular-nums">
+                <span className="text-[#24231F] font-semibold tabular-nums">
                   {kathmanduTime || 'UTC+5:45'}
                 </span>
               </div>
@@ -180,7 +180,7 @@ export const ContactSection: React.FC = () => {
 
             {/* Social Network Links with Hover Transitions */}
             <div className="space-y-4 pt-2">
-              <span className="block text-xs font-mono uppercase tracking-[0.2em] text-[#858997]">
+              <span className="block text-xs font-mono uppercase tracking-[0.2em] text-[#716B61]">
                 Verified Digital Profiles
               </span>
               <div className="flex flex-wrap gap-3">
@@ -189,11 +189,11 @@ export const ContactSection: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   whileHover={shouldReduceMotion ? {} : { y: -2 }}
-                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#C5C7CC] hover:text-[#F1F0EC] bg-[#14161A] border border-white/10 hover:border-white/20 rounded-sm transition-colors"
+                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#5C5952] hover:text-[#24231F] bg-[#FFFFFF] border border-black/10 hover:border-black/20 rounded-md transition-colors"
                 >
                   <Github className="w-3.5 h-3.5" />
                   <span>GitHub</span>
-                  <ArrowUpRight className="w-3 h-3 text-[#858997]" />
+                  <ArrowUpRight className="w-3 h-3 text-[#716B61]" />
                 </motion.a>
 
                 <motion.a
@@ -201,11 +201,11 @@ export const ContactSection: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   whileHover={shouldReduceMotion ? {} : { y: -2 }}
-                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#C5C7CC] hover:text-[#F1F0EC] bg-[#14161A] border border-white/10 hover:border-white/20 rounded-sm transition-colors"
+                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#5C5952] hover:text-[#24231F] bg-[#FFFFFF] border border-black/10 hover:border-black/20 rounded-md transition-colors"
                 >
                   <Linkedin className="w-3.5 h-3.5" />
                   <span>LinkedIn</span>
-                  <ArrowUpRight className="w-3 h-3 text-[#858997]" />
+                  <ArrowUpRight className="w-3 h-3 text-[#716B61]" />
                 </motion.a>
 
                 <motion.a
@@ -213,11 +213,11 @@ export const ContactSection: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   whileHover={shouldReduceMotion ? {} : { y: -2 }}
-                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#C5C7CC] hover:text-[#F1F0EC] bg-[#14161A] border border-white/10 hover:border-white/20 rounded-sm transition-colors"
+                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#5C5952] hover:text-[#24231F] bg-[#FFFFFF] border border-black/10 hover:border-black/20 rounded-md transition-colors"
                 >
                   <Twitter className="w-3.5 h-3.5" />
                   <span>X / Twitter</span>
-                  <ArrowUpRight className="w-3 h-3 text-[#858997]" />
+                  <ArrowUpRight className="w-3 h-3 text-[#716B61]" />
                 </motion.a>
 
                 <motion.a
@@ -225,10 +225,10 @@ export const ContactSection: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   whileHover={shouldReduceMotion ? {} : { y: -2 }}
-                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#C5C7CC] hover:text-[#F1F0EC] bg-[#14161A] border border-white/10 hover:border-white/20 rounded-sm transition-colors"
+                  className="inline-flex items-center gap-2.5 px-4 py-2.5 text-xs font-mono text-[#5C5952] hover:text-[#24231F] bg-[#FFFFFF] border border-black/10 hover:border-black/20 rounded-md transition-colors"
                 >
                   <span>LeetCode</span>
-                  <ArrowUpRight className="w-3 h-3 text-[#858997]" />
+                  <ArrowUpRight className="w-3 h-3 text-[#716B61]" />
                 </motion.a>
               </div>
             </div>
@@ -242,23 +242,23 @@ export const ContactSection: React.FC = () => {
             transition={{ duration: 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-7"
           >
-            <div className="bg-[#14161A] border border-white/10 p-8 sm:p-12 lg:p-14 rounded-sm shadow-2xl hover:border-white/20 transition-colors">
-              <h4 className="text-2xl font-serif text-[#F1F0EC] mb-3">
+            <div className="bg-[#FFFFFF] border border-black/10 p-8 sm:p-12 lg:p-14 rounded-md shadow-[0_24px_60px_-36px_rgba(36,35,31,0.32)] hover:border-black/20 transition-colors">
+              <h4 className="text-2xl font-serif text-[#24231F] mb-3">
                 Send an Editorial Dispatch
               </h4>
-              <p className="text-xs sm:text-sm text-[#858997] mb-10 font-mono leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#716B61] mb-10 font-mono leading-relaxed">
                 Responses typically dispatched within 24 business hours.
               </p>
 
               {submitted ? (
-                <div className="p-10 bg-[#090A0C] border border-emerald-500/20 rounded-sm space-y-5 text-center">
+                <div className="p-10 bg-[#F6F3EC] border border-emerald-500/20 rounded-md space-y-5 text-center">
                   <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
                     <Check className="w-6 h-6" />
                   </div>
-                  <h5 className="text-2xl font-serif text-[#F1F0EC]">
+                  <h5 className="text-2xl font-serif text-[#24231F]">
                     Message Transmitted
                   </h5>
-                  <p className="text-sm sm:text-base text-[#C5C7CC] max-w-md mx-auto leading-[1.8] font-light">
+                  <p className="text-sm sm:text-base text-[#5C5952] max-w-md mx-auto leading-[1.8] font-light">
                     Thank you, {formData.name}. Your inquiry has been queued and prepared in your default mail composer.
                   </p>
                   <button
@@ -266,7 +266,7 @@ export const ContactSection: React.FC = () => {
                       setSubmitted(false);
                       setFormData({ name: '', email: '', subject: '', message: '' });
                     }}
-                    className="inline-block mt-4 text-xs font-mono text-[#858997] hover:text-[#F1F0EC] underline"
+                    className="inline-block mt-4 text-xs font-mono text-[#716B61] hover:text-[#24231F] underline"
                   >
                     Send another inquiry
                   </button>
@@ -277,7 +277,7 @@ export const ContactSection: React.FC = () => {
                     <div className="space-y-2.5">
                       <label
                         htmlFor="name"
-                        className="block text-xs font-mono uppercase tracking-[0.18em] text-[#858997]"
+                        className="block text-xs font-mono uppercase tracking-[0.18em] text-[#716B61]"
                       >
                         Your Name *
                       </label>
@@ -288,14 +288,14 @@ export const ContactSection: React.FC = () => {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="e.g. Elena Rostova"
-                        className="w-full bg-[#090A0C] border border-white/10 rounded-sm px-5 py-3.5 text-sm text-[#F1F0EC] placeholder-[#858997] focus:outline-none focus:border-white/30 transition-colors shadow-sm"
+                        className="w-full bg-[#F6F3EC] border border-black/10 rounded-md px-5 py-3.5 text-sm text-[#24231F] placeholder-[#716B61] focus:border-black/30 transition-colors shadow-sm"
                       />
                     </div>
 
                     <div className="space-y-2.5">
                       <label
                         htmlFor="email"
-                        className="block text-xs font-mono uppercase tracking-[0.18em] text-[#858997]"
+                        className="block text-xs font-mono uppercase tracking-[0.18em] text-[#716B61]"
                       >
                         Your Email *
                       </label>
@@ -306,7 +306,7 @@ export const ContactSection: React.FC = () => {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="elena@studio.com"
-                        className="w-full bg-[#090A0C] border border-white/10 rounded-sm px-5 py-3.5 text-sm text-[#F1F0EC] placeholder-[#858997] focus:outline-none focus:border-white/30 transition-colors shadow-sm"
+                        className="w-full bg-[#F6F3EC] border border-black/10 rounded-md px-5 py-3.5 text-sm text-[#24231F] placeholder-[#716B61] focus:border-black/30 transition-colors shadow-sm"
                       />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export const ContactSection: React.FC = () => {
                   <div className="space-y-2.5">
                     <label
                       htmlFor="subject"
-                      className="block text-xs font-mono uppercase tracking-[0.18em] text-[#858997]"
+                      className="block text-xs font-mono uppercase tracking-[0.18em] text-[#716B61]"
                     >
                       Subject / Project Scope
                     </label>
@@ -324,14 +324,14 @@ export const ContactSection: React.FC = () => {
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       placeholder="e.g. Frontend Engineering Role / Architecture Consultation"
-                      className="w-full bg-[#090A0C] border border-white/10 rounded-sm px-5 py-3.5 text-sm text-[#F1F0EC] placeholder-[#858997] focus:outline-none focus:border-white/30 transition-colors shadow-sm"
+                      className="w-full bg-[#F6F3EC] border border-black/10 rounded-md px-5 py-3.5 text-sm text-[#24231F] placeholder-[#716B61] focus:border-black/30 transition-colors shadow-sm"
                     />
                   </div>
 
                   <div className="space-y-2.5">
                     <label
                       htmlFor="message"
-                      className="block text-xs font-mono uppercase tracking-[0.18em] text-[#858997]"
+                      className="block text-xs font-mono uppercase tracking-[0.18em] text-[#716B61]"
                     >
                       Message / Inquiry Details *
                     </label>
@@ -342,12 +342,12 @@ export const ContactSection: React.FC = () => {
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Share details regarding your opportunity, engineering challenge, or collaboration..."
-                      className="w-full bg-[#090A0C] border border-white/10 rounded-sm px-5 py-3.5 text-sm text-[#F1F0EC] placeholder-[#858997] focus:outline-none focus:border-white/30 transition-colors resize-y shadow-sm leading-relaxed"
+                      className="w-full bg-[#F6F3EC] border border-black/10 rounded-md px-5 py-3.5 text-sm text-[#24231F] placeholder-[#716B61] focus:border-black/30 transition-colors resize-y shadow-sm leading-relaxed"
                     />
                   </div>
 
                   <div className="flex items-center justify-between pt-4">
-                    <span className="text-[11px] font-mono text-[#858997]">
+                    <span className="text-[11px] font-mono text-[#716B61]">
                       * Required fields
                     </span>
                     <motion.button
@@ -355,7 +355,7 @@ export const ContactSection: React.FC = () => {
                       disabled={isSubmitting}
                       whileHover={shouldReduceMotion ? {} : { y: -2, scale: 1.01 }}
                       whileTap={shouldReduceMotion ? {} : { y: 0 }}
-                      className="inline-flex items-center gap-3 px-8 py-4 text-xs font-mono uppercase tracking-wider font-semibold text-[#090A0C] bg-[#F1F0EC] hover:bg-white disabled:opacity-50 rounded-sm transition-all shadow-md group/btn"
+                      className="inline-flex items-center gap-3 px-8 py-4 text-xs font-mono uppercase tracking-wider font-semibold text-[#F6F3EC] bg-[#24231F] hover:bg-[#8B5E34] disabled:opacity-50 rounded-md transition-all shadow-md group/btn"
                     >
                       {isSubmitting ? (
                         <span>Transmitting...</span>
