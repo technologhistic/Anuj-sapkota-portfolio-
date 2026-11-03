@@ -33,10 +33,7 @@ export const Hero: React.FC = () => {
   return (
     <section id="home" className="hero-section" aria-labelledby="hero-title">
       <div className="hero-scene" aria-hidden="true">
-        <div className="scene-grid" />
-        <div className="scene-orbit scene-orbit--outer" />
-        <div className="scene-orbit scene-orbit--inner" />
-        <div className="scene-slab" />
+        <div className="hero-metal-ring" />
         <span className="scene-index">ONYX / 001</span>
       </div>
 

@@ -39,6 +39,7 @@ export default function App() {
       intro
         .from('.hero-kicker', { autoAlpha: 0, y: 16, duration: 0.55 })
         .from('.hero-title-line > span', { yPercent: 112, duration: 0.95, stagger: 0.12 }, '-=0.28')
+        .from('.hero-metal-ring', { autoAlpha: 0, scale: 0.82, duration: 1.35, ease: 'power2.out' }, '-=0.86')
         .from('.hero-copyline', { autoAlpha: 0, y: 22, duration: 0.65 }, '-=0.35')
         .from('.hero-actions > *', { autoAlpha: 0, y: 14, duration: 0.45, stagger: 0.08 }, '-=0.34')
         .from('.hero-portrait-wrap', { autoAlpha: 0, y: 32, rotateY: -10, duration: 0.95 }, '-=0.7')
