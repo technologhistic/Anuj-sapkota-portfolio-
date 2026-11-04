@@ -87,6 +87,10 @@ export const Hero: React.FC = () => {
     let titleStartTime = 0;
     let titleStarted = false;
     let dropTriggered = false;
+    let titleDuration = 600;
+    let titleStagger = 90;
+    let titleTravel = 110;
+    let scheduleAnimation = () => {};
     const titleLines = Array.from(titleRef.current?.querySelectorAll<HTMLElement>('.hero-title-line > span') ?? []);
     const completeTitle = () => {
       if (dropTriggered) return;
@@ -98,13 +102,13 @@ export const Hero: React.FC = () => {
       const start = titleStartTime || now;
       titleStartTime = start;
       titleLines.forEach((line, index) => {
-        const progress = Math.max(0, Math.min(1, (now - start - index * 90) / 600));
+        const progress = Math.max(0, Math.min(1, (now - start - index * titleStagger) / titleDuration));
         const eased = 1 - (1 - progress) ** 3;
         line.style.opacity = `${eased}`;
-        line.style.transform = `translate3d(0, ${(1 - eased) * 110}%, 0)`;
+        line.style.transform = `translate3d(0, ${(1 - eased) * titleTravel}%, 0)`;
       });
 
-      if (now - start >= 690) {
+      if (now - start >= titleDuration + titleStagger) {
         titleFrame = 0;
         titleLines.forEach((line) => {
           line.style.removeProperty('opacity');
@@ -119,18 +123,14 @@ export const Hero: React.FC = () => {
     const startTitle = () => {
       if (titleStarted) return;
       titleStarted = true;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      titleDuration = reducedMotion ? 420 : 600;
+      titleStagger = reducedMotion ? 70 : 90;
+      titleTravel = reducedMotion ? 10 : 110;
       titleLines.forEach((line) => {
         line.style.opacity = '0';
-        line.style.transform = 'translate3d(0, 110%, 0)';
+        line.style.transform = `translate3d(0, ${titleTravel}%, 0)`;
       });
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        titleLines.forEach((line) => {
-          line.style.removeProperty('opacity');
-          line.style.removeProperty('transform');
-        });
-        completeTitle();
-        return;
-      }
       titleStartTime = 0;
       titleFrame = requestAnimationFrame(animateTitle);
     };
@@ -140,7 +140,11 @@ export const Hero: React.FC = () => {
     let isVisible = true;
     const startDrop = () => {
       dropStartedRef.current = true;
-      if (motionPreference.matches) springRef.current.dropY = 0;
+      if (motionPreference.matches) {
+        springRef.current.dropY = -36;
+        springRef.current.dropVelocity = 0;
+      }
+      scheduleAnimation();
     };
     const handleIntroStart = () => {
       startTitle();
@@ -167,8 +171,10 @@ export const Hero: React.FC = () => {
       spring.vy = (spring.vy + (targetY - spring.y) * stiffness) * damping;
       spring.vz = (spring.vz + (targetZ - spring.z) * stiffness) * damping;
       if (reducedMotion) {
-        spring.dropY = 0;
-        spring.dropVelocity = 0;
+        if (dropStartedRef.current) {
+          spring.dropVelocity = (spring.dropVelocity + (0 - spring.dropY) * 0.12 * dt) * Math.pow(0.68, dt);
+          spring.dropY += spring.dropVelocity;
+        }
       } else if (dropStartedRef.current) {
         const dropStiffness = 0.045 * dt;
         spring.dropVelocity = (spring.dropVelocity + (0 - spring.dropY) * dropStiffness) * Math.pow(0.76, dt);
@@ -198,18 +204,18 @@ export const Hero: React.FC = () => {
       }
       const settling = Math.abs(spring.vx) + Math.abs(spring.vy) + Math.abs(spring.vz)
         + Math.abs(spring.x - targetX) + Math.abs(spring.y - targetY) + Math.abs(spring.z - targetZ)
-        + Math.abs(spring.dropY) + Math.abs(spring.dropVelocity)
+        + (dropStartedRef.current ? Math.abs(spring.dropY) + Math.abs(spring.dropVelocity) : 0)
         + Math.abs(spring.pullY - spring.targetPullY) + Math.abs(spring.pullVelocity)
         + Math.abs(spring.lightX - spring.targetLightX) + Math.abs(spring.lightY - spring.targetLightY);
       if (isVisible && (!reducedMotion || settling > 0.08)) frameRef.current = requestAnimationFrame(animate);
     };
-    const scheduleAnimation = () => {
+    scheduleAnimation = () => {
       if (isVisible && !frameRef.current) frameRef.current = requestAnimationFrame(animate);
     };
     const onMotionPreferenceChange = () => {
       if (motionPreference.matches) {
         const spring = springRef.current;
-        spring.dropY = dropStartedRef.current ? 0 : spring.dropY;
+        spring.dropY = dropStartedRef.current ? -24 : spring.dropY;
         spring.dropVelocity = 0;
       }
       scheduleAnimation();

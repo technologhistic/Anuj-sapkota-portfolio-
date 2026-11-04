@@ -391,7 +391,21 @@ html:not([data-portfolio-intro-complete]) .hero-title-line > span { opacity: 0; 
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .welcome-letter { animation-duration: .01ms !important; animation-delay: 0s !important; }
-  .hero-script text { stroke-dashoffset: 0 !important; }
+  .welcome-letter {
+    animation-name: welcome-letter-reveal-reduced;
+    animation-duration: .48s;
+    animation-delay: calc(.1s + var(--intro-index) * .09s);
+  }
+  .welcome-rule { animation-duration: .45s; }
+  .welcome-caption { animation-duration: .4s; }
+  .welcome-screen { transition-duration: .35s; }
+  .welcome-screen--leaving .welcome-content { transition-duration: .35s; }
+  .button, .primary-nav a, .portrait-card, .project-card, .project-drawer, .text-link {
+    transition-duration: .16s;
+  }
+}
+
+@keyframes welcome-letter-reveal-reduced {
+  from { opacity: 0; filter: blur(3px); transform: translate3d(0, 10px, 0) scale(.98); }
+  to { opacity: 1; filter: blur(0); transform: translate3d(0, 0, 0) scale(1); }
 }

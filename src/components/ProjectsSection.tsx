@@ -37,6 +37,7 @@ export const ProjectsSection: React.FC = () => {
     reducedMotionRef.current = preference.matches;
     const motion = orbitMotionRef.current;
     let lastTime = 0;
+    let reducedMotionTimer = 0;
 
     const renderOrbit = () => {
       const rect = stage.getBoundingClientRect();
@@ -87,7 +88,7 @@ export const ProjectsSection: React.FC = () => {
       } else {
         motion.angle += motion.velocity * dt;
         motion.velocity *= damping;
-        if (!reducedMotionRef.current) motion.angle += .0032 * dt;
+        motion.angle += (reducedMotionRef.current ? .0012 : .0032) * dt;
       }
 
       const lightEase = 1 - Math.pow(.76, dt);
@@ -96,12 +97,19 @@ export const ProjectsSection: React.FC = () => {
       renderOrbit();
 
       const lightMoving = Math.abs(motion.pointerX - motion.lightX) > .12 || Math.abs(motion.pointerY - motion.lightY) > .12;
-      if (!reducedMotionRef.current || motion.dragging || motion.targetAngle !== null || lightMoving || Math.abs(motion.velocity) > .002) {
+      const activeMotion = motion.dragging || motion.targetAngle !== null || lightMoving || Math.abs(motion.velocity) > .002;
+      if (!reducedMotionRef.current || activeMotion) {
         orbitFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        reducedMotionTimer = window.setTimeout(startOrbit, 80);
       }
     };
 
     const startOrbit = () => {
+      if (reducedMotionTimer) {
+        window.clearTimeout(reducedMotionTimer);
+        reducedMotionTimer = 0;
+      }
       if (!orbitFrameRef.current) {
         lastTime = 0;
         orbitFrameRef.current = requestAnimationFrame(animate);
@@ -120,6 +128,7 @@ export const ProjectsSection: React.FC = () => {
     preference.addEventListener('change', onMotionPreference);
     return () => {
       cancelAnimationFrame(orbitFrameRef.current);
+      if (reducedMotionTimer) window.clearTimeout(reducedMotionTimer);
       orbitFrameRef.current = 0;
       startOrbitRef.current = () => {};
       preference.removeEventListener('change', onMotionPreference);
@@ -230,8 +239,9 @@ export const ProjectsSection: React.FC = () => {
     const drawer = drawerRef.current;
     const backdrop = backdropRef.current;
     const mobile = window.matchMedia('(max-width: 720px)').matches;
+    const reducedMotion = reducedMotionRef.current;
     const motion = drawerMotionRef.current;
-    const travel = mobile ? drawer.offsetHeight + 40 : drawer.offsetWidth + 40;
+    const travel = reducedMotion ? 16 : mobile ? drawer.offsetHeight + 40 : drawer.offsetWidth + 40;
 
     if (!isClosing) {
       motion.x = mobile ? 0 : travel;
@@ -244,25 +254,9 @@ export const ProjectsSection: React.FC = () => {
       backdrop.style.setProperty('--drawer-backdrop-alpha', '0');
     }
 
-    const destinationX = isClosing && !mobile ? drawer.offsetWidth + 48 : 0;
-    const destinationY = isClosing && mobile ? drawer.offsetHeight + 48 : 0;
+    const destinationX = isClosing && !mobile ? (reducedMotion ? 16 : drawer.offsetWidth + 48) : 0;
+    const destinationY = isClosing && mobile ? (reducedMotion ? 16 : drawer.offsetHeight + 48) : 0;
     const destinationAlpha = isClosing ? 0 : 1;
-    if (reducedMotionRef.current) {
-      motion.x = destinationX;
-      motion.y = destinationY;
-      motion.vx = motion.vy = motion.alphaVelocity = 0;
-      motion.alpha = destinationAlpha;
-      drawer.style.setProperty('--drawer-spring-x', `${destinationX}px`);
-      drawer.style.setProperty('--drawer-spring-y', `${destinationY}px`);
-      drawer.style.setProperty('--drawer-scale', '1');
-      backdrop.style.setProperty('--drawer-backdrop-alpha', `${destinationAlpha}`);
-      if (isClosing) {
-        setSelectedProject(null);
-        setIsClosing(false);
-        setDragOffset(0);
-      }
-      return;
-    }
     let frame = 0;
     let previousTime = 0;
 

@@ -74,8 +74,8 @@ export default function App() {
     if (welcomeOpen) return;
     const media = gsap.matchMedia();
     const installPageAnimations = (reducedMotion: boolean) => {
-      const travel = (fullDistance: number) => reducedMotion ? 0 : fullDistance;
-      const duration = (fullDuration: number, reducedDuration = 0.2) => reducedMotion ? reducedDuration : fullDuration;
+      const travel = (fullDistance: number) => reducedMotion ? Math.min(fullDistance, 6) : fullDistance;
+      const duration = (fullDuration: number, reducedDuration = 0.42) => reducedMotion ? reducedDuration : fullDuration;
       const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
       intro
         .from('.hero-kicker', { autoAlpha: 0, y: travel(16), duration: duration(0.55) })
@@ -84,18 +84,16 @@ export default function App() {
         .from('.hero-actions > *', { autoAlpha: 0, y: travel(14), duration: duration(0.45), stagger: reducedMotion ? 0.025 : 0.08 }, '-=0.34')
         .from('.hero-portrait-wrap', { autoAlpha: 0, y: travel(32), rotateY: travel(-10), duration: duration(0.95) }, 0);
 
-      if (!reducedMotion) {
-        intro.from('.hero-script text', { strokeDashoffset: 260, duration: 1.05, ease: 'power2.inOut' }, '-=0.7');
-      }
+      intro.fromTo('.hero-script text', { strokeDashoffset: 1400 }, {
+        strokeDashoffset: 0,
+        duration: reducedMotion ? 0.75 : 1.4,
+        ease: 'power2.inOut',
+      }, '-=0.7');
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((element) => {
-        if (reducedMotion) {
-          gsap.set(element, { autoAlpha: 1, y: 0 });
-          return;
-        }
-        gsap.fromTo(element, { autoAlpha: 0, y: 28 }, {
+        gsap.fromTo(element, { autoAlpha: 0, y: reducedMotion ? 7 : 28 }, {
           autoAlpha: 1,
           y: 0,
-          duration: 0.72,
+          duration: reducedMotion ? 0.42 : 0.72,
           delay: Number(element.style.getPropertyValue('--reveal-order') || 0) * 0.055,
           ease: 'power2.out',
           scrollTrigger: { trigger: element, start: 'top 88%', once: true },

@@ -129,7 +129,8 @@ export const SkillsSection: React.FC = () => {
           particle.style.top = `${(point.y / 1200) * 100}%`;
           if (heading) {
             heading.style.opacity = `${headingValue.toFixed(3)}`;
-            heading.style.transform = `translate3d(0, ${((1 - headingValue) * 22).toFixed(1)}px, 0)`;
+            const headingTravel = prefersReducedMotion.matches ? 6 : 22;
+            heading.style.transform = `translate3d(0, ${((1 - headingValue) * headingTravel).toFixed(1)}px, 0)`;
             heading.style.visibility = 'visible';
           }
           nodePoints.forEach((nodePoint, index) => {
@@ -149,8 +150,8 @@ export const SkillsSection: React.FC = () => {
             }
             if (card) {
               card.style.opacity = `${reveal.toFixed(3)}`;
-              const fallOffset = (1 - reveal) ** 2 * -160;
-              const fallRotation = (1 - reveal) * -5;
+              const fallOffset = (1 - reveal) ** 2 * (prefersReducedMotion.matches ? -16 : -160);
+              const fallRotation = prefersReducedMotion.matches ? 0 : (1 - reveal) * -5;
               card.style.transform = `perspective(900px) translate3d(0, ${fallOffset.toFixed(1)}px, 0) rotateX(${fallRotation.toFixed(2)}deg)`;
               card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
             }
@@ -171,7 +172,7 @@ export const SkillsSection: React.FC = () => {
           frame = 0;
           const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
           lastTime = now;
-          const easing = 1 - Math.exp(-dt / 48);
+          const easing = 1 - Math.exp(-dt / (prefersReducedMotion.matches ? 28 : 48));
           progress += (targetProgress - progress) * easing;
           headingProgress += (targetHeadingProgress - headingProgress) * easing;
           if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
@@ -180,39 +181,21 @@ export const SkillsSection: React.FC = () => {
           if (progress !== targetProgress || headingProgress !== targetHeadingProgress) frame = requestAnimationFrame(animate);
         };
 
-        const showStaticPath = () => {
-          if (frame) cancelAnimationFrame(frame);
-          frame = 0;
-          progress = targetProgress = 1;
-          headingProgress = targetHeadingProgress = 1;
-          draw(1, 1);
-          particle.style.opacity = '0';
-          nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
-        };
         const updateFromScroll = () => {
-          if (prefersReducedMotion.matches) {
-            showStaticPath();
-            return;
-          }
+          particle.style.opacity = prefersReducedMotion.matches ? '0' : '';
           targetProgress = calculateProgress();
           targetHeadingProgress = calculateHeadingProgress();
           if (!frame) frame = requestAnimationFrame(animate);
         };
-        const handleMotionPreference = (event: MediaQueryListEvent) => {
-          if (event.matches) showStaticPath();
-          else {
-            particle.style.opacity = '';
-            updateFromScroll();
-          }
+        const handleMotionPreference = () => {
+          updateFromScroll();
         };
 
-        if (prefersReducedMotion.matches) showStaticPath();
-        else {
-          progress = targetProgress = calculateProgress();
-          headingProgress = targetHeadingProgress = calculateHeadingProgress();
-          draw(progress, headingProgress);
-          scene.classList.add('skills-timeline--animated');
-        }
+        progress = targetProgress = calculateProgress();
+        headingProgress = targetHeadingProgress = calculateHeadingProgress();
+        draw(progress, headingProgress);
+        particle.style.opacity = prefersReducedMotion.matches ? '0' : '';
+        scene.classList.add('skills-timeline--animated');
         window.addEventListener('scroll', updateFromScroll, { passive: true });
         window.addEventListener('resize', updateFromScroll);
         window.addEventListener('orientationchange', updateFromScroll);
