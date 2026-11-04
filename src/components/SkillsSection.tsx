@@ -47,10 +47,13 @@ export const SkillsSection: React.FC = () => {
         let progress = 0;
 
         const draw = (value: number) => {
+          let activeIndex = -1;
+          NODE_ANCHORS.forEach((anchor, index) => {
+            if (value >= anchor.y / 1200 - .055) activeIndex = index;
+          });
           cardRefs.current.forEach((card, index) => {
             if (!card) return;
-            const revealAt = NODE_ANCHORS[index].y / 1200 - .055;
-            card.classList.toggle('skill-item--revealed', value >= revealAt);
+            card.classList.toggle('skill-item--revealed', index === activeIndex);
           });
         };
 
