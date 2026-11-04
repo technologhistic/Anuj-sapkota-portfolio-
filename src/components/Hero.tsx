@@ -136,7 +136,12 @@ export const Hero: React.FC = () => {
     };
 
     let lastTime = 0;
-    const startDrop = () => { dropStartedRef.current = true; };
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let isVisible = true;
+    const startDrop = () => {
+      dropStartedRef.current = true;
+      if (motionPreference.matches) springRef.current.dropY = 0;
+    };
     const handleIntroStart = () => {
       startTitle();
     };
@@ -144,13 +149,15 @@ export const Hero: React.FC = () => {
     window.addEventListener('portfolio:hero-name-complete', startDrop);
     if (document.documentElement.dataset.portfolioIntroComplete === 'true') startTitle();
     const animate = (now: number) => {
+      frameRef.current = 0;
       const spring = springRef.current;
+      const reducedMotion = motionPreference.matches;
       const dt = lastTime ? Math.min(2, Math.max(0.5, (now - lastTime) / 16.667)) : 1;
       lastTime = now;
       const time = now / 1000;
-      const idleX = Math.sin(time * 1.1) * 1.35;
-      const idleY = Math.sin(time * 0.82 + 0.7) * 1.8;
-      const idleZ = Math.sin(time * 0.92) * 2.1;
+      const idleX = reducedMotion ? 0 : Math.sin(time * 1.1) * 1.35;
+      const idleY = reducedMotion ? 0 : Math.sin(time * 0.82 + 0.7) * 1.8;
+      const idleZ = reducedMotion ? 0 : Math.sin(time * 0.92) * 2.1;
       const targetX = idleX + spring.inputX;
       const targetY = idleY + spring.inputY;
       const targetZ = idleZ + spring.inputY * 0.12;
@@ -159,7 +166,10 @@ export const Hero: React.FC = () => {
       spring.vx = (spring.vx + (targetX - spring.x) * stiffness) * damping;
       spring.vy = (spring.vy + (targetY - spring.y) * stiffness) * damping;
       spring.vz = (spring.vz + (targetZ - spring.z) * stiffness) * damping;
-      if (dropStartedRef.current) {
+      if (reducedMotion) {
+        spring.dropY = 0;
+        spring.dropVelocity = 0;
+      } else if (dropStartedRef.current) {
         const dropStiffness = 0.045 * dt;
         spring.dropVelocity = (spring.dropVelocity + (0 - spring.dropY) * dropStiffness) * Math.pow(0.76, dt);
         spring.dropY += spring.dropVelocity;
@@ -186,12 +196,41 @@ export const Hero: React.FC = () => {
         pendulumRef.current.style.setProperty('--drop-y', `${spring.dropY.toFixed(1)}px`);
         pendulumRef.current.style.setProperty('--pull-y', `${spring.pullY.toFixed(1)}px`);
       }
-      frameRef.current = requestAnimationFrame(animate);
+      const settling = Math.abs(spring.vx) + Math.abs(spring.vy) + Math.abs(spring.vz)
+        + Math.abs(spring.x - targetX) + Math.abs(spring.y - targetY) + Math.abs(spring.z - targetZ)
+        + Math.abs(spring.dropY) + Math.abs(spring.dropVelocity)
+        + Math.abs(spring.pullY - spring.targetPullY) + Math.abs(spring.pullVelocity)
+        + Math.abs(spring.lightX - spring.targetLightX) + Math.abs(spring.lightY - spring.targetLightY);
+      if (isVisible && (!reducedMotion || settling > 0.08)) frameRef.current = requestAnimationFrame(animate);
     };
-    frameRef.current = requestAnimationFrame(animate);
+    const scheduleAnimation = () => {
+      if (isVisible && !frameRef.current) frameRef.current = requestAnimationFrame(animate);
+    };
+    const onMotionPreferenceChange = () => {
+      if (motionPreference.matches) {
+        const spring = springRef.current;
+        spring.dropY = dropStartedRef.current ? 0 : spring.dropY;
+        spring.dropVelocity = 0;
+      }
+      scheduleAnimation();
+    };
+    const visibilityObserver = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) scheduleAnimation();
+      else {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = 0;
+        lastTime = 0;
+      }
+    }, { threshold: 0 });
+    if (stageRef.current) visibilityObserver?.observe(stageRef.current);
+    motionPreference.addEventListener('change', onMotionPreferenceChange);
+    scheduleAnimation();
     return () => {
       cancelAnimationFrame(frameRef.current);
       if (titleFrame) cancelAnimationFrame(titleFrame);
+      visibilityObserver?.disconnect();
+      motionPreference.removeEventListener('change', onMotionPreferenceChange);
       window.removeEventListener('portfolio:intro-start', handleIntroStart);
       window.removeEventListener('portfolio:hero-name-complete', startDrop);
     };

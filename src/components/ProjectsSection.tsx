@@ -14,6 +14,7 @@ export const ProjectsSection: React.FC = () => {
   const [isClosing, setIsClosing] = useState(false);
   const dragStart = useRef<number | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerTriggerRef = useRef<HTMLElement | null>(null);
   const drawerRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLButtonElement>(null);
   const drawerMotionRef = useRef<DrawerMotion>({ x: 0, y: 0, vx: 0, vy: 0, alpha: 0, alphaVelocity: 0 });
@@ -29,7 +30,7 @@ export const ProjectsSection: React.FC = () => {
     if (selectedProject) setIsClosing(true);
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stage = orbitStageRef.current;
     if (!stage) return;
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -192,11 +193,35 @@ export const ProjectsSection: React.FC = () => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') closeDrawer(); };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDrawer();
+        return;
+      }
+      if (event.key !== 'Tab' || !drawerRef.current) return;
+      const focusable = Array.from(drawerRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      )).filter((element) => element.getAttribute('aria-hidden') !== 'true');
+      if (!focusable.length) {
+        event.preventDefault();
+        drawerRef.current.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !drawerRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !drawerRef.current.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', onKeyDown);
+      if (drawerTriggerRef.current?.isConnected) drawerTriggerRef.current.focus();
     };
   }, [selectedProject]);
 
@@ -222,6 +247,22 @@ export const ProjectsSection: React.FC = () => {
     const destinationX = isClosing && !mobile ? drawer.offsetWidth + 48 : 0;
     const destinationY = isClosing && mobile ? drawer.offsetHeight + 48 : 0;
     const destinationAlpha = isClosing ? 0 : 1;
+    if (reducedMotionRef.current) {
+      motion.x = destinationX;
+      motion.y = destinationY;
+      motion.vx = motion.vy = motion.alphaVelocity = 0;
+      motion.alpha = destinationAlpha;
+      drawer.style.setProperty('--drawer-spring-x', `${destinationX}px`);
+      drawer.style.setProperty('--drawer-spring-y', `${destinationY}px`);
+      drawer.style.setProperty('--drawer-scale', '1');
+      backdrop.style.setProperty('--drawer-backdrop-alpha', `${destinationAlpha}`);
+      if (isClosing) {
+        setSelectedProject(null);
+        setIsClosing(false);
+        setDragOffset(0);
+      }
+      return;
+    }
     let frame = 0;
     let previousTime = 0;
 
@@ -331,7 +372,7 @@ export const ProjectsSection: React.FC = () => {
                 {project.technologies.length ? project.technologies.map((item) => <li key={item}>{item}</li>) : <li>Technology details not listed</li>}
               </ul>
               <div className="project-links">
-                <button className="project-details-button" type="button" onClick={() => selectProject(project, index)}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
+                <button className="project-details-button" type="button" onClick={(event) => { drawerTriggerRef.current = event.currentTarget; selectProject(project, index); }}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
                 <a href={project.repository} target="_blank" rel="noreferrer"><Github size={15} aria-hidden="true" />Repository <ArrowUpRight size={13} aria-hidden="true" /></a>
                 {project.demo && <a href={project.demo} target="_blank" rel="noreferrer">Live demo{project.demoNote ? ` · ${project.demoNote}` : ''} <ArrowUpRight size={13} aria-hidden="true" /></a>}
               </div>
