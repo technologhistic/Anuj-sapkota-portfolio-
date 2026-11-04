@@ -19,6 +19,44 @@ const NODE_ANCHORS = [
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 
+function closestLengthOnPath(
+  path: SVGPathElement,
+  pathLength: number,
+  targetX: number,
+  targetY: number,
+) {
+  const distanceAt = (length: number) => {
+    const point = path.getPointAtLength(length);
+    return (point.x - targetX) ** 2 + (point.y - targetY) ** 2;
+  };
+
+  const coarseSteps = 48;
+  const stepLength = pathLength / coarseSteps;
+  let closestLength = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  for (let step = 0; step <= coarseSteps; step += 1) {
+    const length = stepLength * step;
+    const distance = distanceAt(length);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestLength = length;
+    }
+  }
+
+  let low = Math.max(0, closestLength - stepLength);
+  let high = Math.min(pathLength, closestLength + stepLength);
+  for (let iteration = 0; iteration < 4; iteration += 1) {
+    const leftThird = low + (high - low) / 3;
+    const rightThird = high - (high - low) / 3;
+    if (distanceAt(leftThird) <= distanceAt(rightThird)) high = rightThird;
+    else low = leftThird;
+  }
+
+  closestLength = (low + high) / 2;
+  return { ...path.getPointAtLength(closestLength), length: closestLength };
+}
+
 export const SkillsSection: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
@@ -34,163 +72,183 @@ export const SkillsSection: React.FC = () => {
     const progressPath = progressPathRef.current;
     const particle = particleRef.current;
     if (!scene || !path || !progressPath || !particle) return;
-    const heading = headingRef.current;
+    const sectionHeading = headingRef.current;
+    const cards = cardRefs.current.filter((card): card is HTMLElement => Boolean(card));
+    let cancelled = false;
+    let idleId: number | undefined;
+    let timeoutId = 0;
+    let disposeAnimation: (() => void) | undefined;
 
-    let pathLength = 0;
-    try {
-      pathLength = path.getTotalLength();
-      if (!Number.isFinite(pathLength) || pathLength <= 0) throw new Error('Invalid skills path length');
-    } catch (error) {
-      // SVG measurement can fail during early Android WebView/Chrome layout.
-      // Leave content in its visible CSS fallback state and report the failure.
-      console.error('Skills timeline measurement failed; showing all skill cards.', error);
-      return;
-    }
-    progressPath.style.strokeDasharray = `${pathLength}`;
-    progressPath.style.strokeDashoffset = `${pathLength}`;
-    const nodePoints = NODE_ANCHORS.map((anchor) => {
-      let closestLength = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
-      for (let sample = 0; sample <= 1400; sample += 1) {
-        const length = (pathLength * sample) / 1400;
-        const point = path.getPointAtLength(length);
-        const distance = (point.x - anchor.x) ** 2 + (point.y - anchor.y) ** 2;
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestLength = length;
-        }
-      }
-      return { ...path.getPointAtLength(closestLength), length: closestLength };
-    });
-
-    nodePoints.forEach((point, index) => {
-      const node = nodeRefs.current[index];
-      const card = cardRefs.current[index];
-      if (node) {
-        node.style.left = `${(point.x / 1000) * 100}%`;
-        node.style.top = `${(point.y / 1200) * 100}%`;
-      }
-      if (card) card.style.setProperty('--skill-node-y', `${(point.y / 1200) * 100}%`);
-    });
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let progress = 0;
-    let targetProgress = 0;
-    let headingProgress = 0;
-    let targetHeadingProgress = 0;
-    let frame = 0;
-    let lastTime = 0;
-
-    const draw = (value: number, headingValue: number) => {
-      const distance = pathLength * value;
-      progressPath.style.strokeDashoffset = `${pathLength - distance}`;
-      const point = path.getPointAtLength(clamp(distance, 0, pathLength));
-      particle.style.left = `${(point.x / 1000) * 100}%`;
-      particle.style.top = `${(point.y / 1200) * 100}%`;
-      if (heading) {
-        heading.style.opacity = `${headingValue.toFixed(3)}`;
-        heading.style.transform = `translate3d(0, ${((1 - headingValue) * 22).toFixed(1)}px, 0)`;
-        heading.style.visibility = 'visible';
-      }
-      nodePoints.forEach((nodePoint, index) => {
-        const node = nodeRefs.current[index];
-        const card = cardRefs.current[index];
-        const nodeProgress = nodePoint.length / pathLength;
-        const reveal = value >= .999 ? 1 : clamp((value - nodeProgress + .055) / .1);
-        const glowStart = Math.max(0, nodeProgress - .035);
-        const glowEnd = Math.min(1, nodeProgress + .04);
-        const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
-        if (node) {
-          node.style.setProperty('--node-glow', `${glow.toFixed(3)}`);
-          node.classList.toggle('skills-timeline__node--lit', glow > .05);
-        }
-        if (card) {
-          card.style.opacity = `${reveal.toFixed(3)}`;
-          const fallOffset = (1 - reveal) ** 2 * -120;
-          card.style.transform = `translate3d(0, ${fallOffset.toFixed(1)}px, 0)`;
-          card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
-        }
+    const showCardsFallback = () => {
+      scene.classList.remove('skills-timeline--animated');
+      cards.forEach((card) => {
+        card.style.removeProperty('opacity');
+        card.style.removeProperty('visibility');
+        card.style.removeProperty('transform');
       });
-    };
-
-    const calculateProgress = () => {
-      const rect = scene.getBoundingClientRect();
-      return clamp((window.innerHeight * .62 - rect.top) / Math.max(rect.height, 1));
-    };
-
-    const calculateHeadingProgress = () => {
-      if (!heading) return 1;
-      const rect = heading.getBoundingClientRect();
-      return clamp((window.innerHeight * .92 - rect.top) / Math.max(window.innerHeight * .22, 1));
-    };
-
-    const animate = (now: number) => {
-      frame = 0;
-      const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
-      lastTime = now;
-      const easing = 1 - Math.exp(-dt / 48);
-      progress += (targetProgress - progress) * easing;
-      headingProgress += (targetHeadingProgress - headingProgress) * easing;
-      if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
-      if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
-      draw(progress, headingProgress);
-      if (progress !== targetProgress || headingProgress !== targetHeadingProgress) {
-        frame = requestAnimationFrame(animate);
+      if (sectionHeading) {
+        sectionHeading.style.removeProperty('opacity');
+        sectionHeading.style.removeProperty('visibility');
+        sectionHeading.style.removeProperty('transform');
       }
     };
 
-    const updateFromScroll = () => {
-      if (prefersReducedMotion.matches) {
-        showStaticPath();
-        return;
-      }
-      targetProgress = calculateProgress();
-      targetHeadingProgress = calculateHeadingProgress();
-      if (!frame) frame = requestAnimationFrame(animate);
-    };
+    const init = () => {
+      if (cancelled) return;
+      try {
+        const pathLength = path.getTotalLength();
+        if (!Number.isFinite(pathLength) || pathLength <= 0) throw new Error('Invalid skills path length');
+        const nodePoints = NODE_ANCHORS.map(({ x, y }) => closestLengthOnPath(path, pathLength, x, y));
+        const heading = headingRef.current;
 
-    const showStaticPath = () => {
-      if (frame) cancelAnimationFrame(frame);
-      frame = 0;
-      progress = targetProgress = 1;
-      headingProgress = targetHeadingProgress = 1;
-      draw(1, 1);
-      particle.style.opacity = '0';
-      nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
-    };
+        progressPath.style.strokeDasharray = `${pathLength}`;
+        progressPath.style.strokeDashoffset = `${pathLength}`;
+        nodePoints.forEach((point, index) => {
+          const node = nodeRefs.current[index];
+          const card = cardRefs.current[index];
+          if (node) {
+            node.style.left = `${(point.x / 1000) * 100}%`;
+            node.style.top = `${(point.y / 1200) * 100}%`;
+          }
+          if (card) card.style.setProperty('--skill-node-y', `${(point.y / 1200) * 100}%`);
+        });
 
-    const handleMotionPreference = (event: MediaQueryListEvent) => {
-      if (event.matches) showStaticPath();
-      else {
-        particle.style.opacity = '';
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let progress = 0;
+        let targetProgress = 0;
+        let headingProgress = 0;
+        let targetHeadingProgress = 0;
+        let frame = 0;
+        let lastTime = 0;
+
+        const draw = (value: number, headingValue: number) => {
+          const distance = pathLength * value;
+          progressPath.style.strokeDashoffset = `${pathLength - distance}`;
+          const point = path.getPointAtLength(clamp(distance, 0, pathLength));
+          particle.style.left = `${(point.x / 1000) * 100}%`;
+          particle.style.top = `${(point.y / 1200) * 100}%`;
+          if (heading) {
+            heading.style.opacity = `${headingValue.toFixed(3)}`;
+            heading.style.transform = `translate3d(0, ${((1 - headingValue) * 22).toFixed(1)}px, 0)`;
+            heading.style.visibility = 'visible';
+          }
+          nodePoints.forEach((nodePoint, index) => {
+            const node = nodeRefs.current[index];
+            const card = cardRefs.current[index];
+            const nodeProgress = nodePoint.length / pathLength;
+            const reveal = value >= .999 ? 1 : clamp((value - nodeProgress + .055) / .1);
+            const glowStart = Math.max(0, nodeProgress - .035);
+            const glowEnd = Math.min(1, nodeProgress + .04);
+            const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
+            if (node) {
+              node.style.setProperty('--node-glow', `${glow.toFixed(3)}`);
+              node.classList.toggle('skills-timeline__node--lit', glow > .05);
+            }
+            if (card) {
+              card.style.opacity = `${reveal.toFixed(3)}`;
+              const fallOffset = (1 - reveal) ** 2 * -120;
+              card.style.transform = `translate3d(0, ${fallOffset.toFixed(1)}px, 0)`;
+              card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
+            }
+          });
+        };
+
+        const calculateProgress = () => {
+          const rect = scene.getBoundingClientRect();
+          return clamp((window.innerHeight * .62 - rect.top) / Math.max(rect.height, 1));
+        };
+        const calculateHeadingProgress = () => {
+          if (!heading) return 1;
+          const rect = heading.getBoundingClientRect();
+          return clamp((window.innerHeight * .92 - rect.top) / Math.max(window.innerHeight * .22, 1));
+        };
+
+        const animate = (now: number) => {
+          frame = 0;
+          const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
+          lastTime = now;
+          const easing = 1 - Math.exp(-dt / 48);
+          progress += (targetProgress - progress) * easing;
+          headingProgress += (targetHeadingProgress - headingProgress) * easing;
+          if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
+          if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
+          draw(progress, headingProgress);
+          if (progress !== targetProgress || headingProgress !== targetHeadingProgress) frame = requestAnimationFrame(animate);
+        };
+
+        const showStaticPath = () => {
+          if (frame) cancelAnimationFrame(frame);
+          frame = 0;
+          progress = targetProgress = 1;
+          headingProgress = targetHeadingProgress = 1;
+          draw(1, 1);
+          particle.style.opacity = '0';
+          nodeRefs.current.forEach((node) => node?.classList.add('skills-timeline__node--lit'));
+        };
+        const updateFromScroll = () => {
+          if (prefersReducedMotion.matches) {
+            showStaticPath();
+            return;
+          }
+          targetProgress = calculateProgress();
+          targetHeadingProgress = calculateHeadingProgress();
+          if (!frame) frame = requestAnimationFrame(animate);
+        };
+        const handleMotionPreference = (event: MediaQueryListEvent) => {
+          if (event.matches) showStaticPath();
+          else {
+            particle.style.opacity = '';
+            updateFromScroll();
+          }
+        };
+
+        if (prefersReducedMotion.matches) showStaticPath();
+        else {
+          progress = targetProgress = calculateProgress();
+          headingProgress = targetHeadingProgress = calculateHeadingProgress();
+          draw(progress, headingProgress);
+          scene.classList.add('skills-timeline--animated');
+        }
+        window.addEventListener('scroll', updateFromScroll, { passive: true });
+        window.addEventListener('resize', updateFromScroll);
+        window.addEventListener('orientationchange', updateFromScroll);
+        window.addEventListener('load', updateFromScroll);
+        window.addEventListener('pageshow', updateFromScroll);
         updateFromScroll();
+        prefersReducedMotion.addEventListener('change', handleMotionPreference);
+
+        disposeAnimation = () => {
+          scene.classList.remove('skills-timeline--animated');
+          if (frame) cancelAnimationFrame(frame);
+          window.removeEventListener('scroll', updateFromScroll);
+          window.removeEventListener('resize', updateFromScroll);
+          window.removeEventListener('orientationchange', updateFromScroll);
+          window.removeEventListener('load', updateFromScroll);
+          window.removeEventListener('pageshow', updateFromScroll);
+          prefersReducedMotion.removeEventListener('change', handleMotionPreference);
+        };
+      } catch (error) {
+        console.error('Skills timeline initialization failed; showing all skill cards.', error);
+        showCardsFallback();
       }
     };
 
-    if (prefersReducedMotion.matches) showStaticPath();
-    else {
-      progress = targetProgress = calculateProgress();
-      headingProgress = targetHeadingProgress = calculateHeadingProgress();
-      draw(progress, headingProgress);
-      scene.classList.add('skills-timeline--animated');
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof idleWindow.requestIdleCallback === 'function') {
+      idleId = idleWindow.requestIdleCallback(init, { timeout: 200 });
+    } else {
+      timeoutId = window.setTimeout(init, 32);
     }
-    window.addEventListener('scroll', updateFromScroll, { passive: true });
-    window.addEventListener('resize', updateFromScroll);
-    window.addEventListener('orientationchange', updateFromScroll);
-    window.addEventListener('load', updateFromScroll);
-    window.addEventListener('pageshow', updateFromScroll);
-    updateFromScroll();
-    prefersReducedMotion.addEventListener('change', handleMotionPreference);
 
     return () => {
-      scene.classList.remove('skills-timeline--animated');
-      if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', updateFromScroll);
-      window.removeEventListener('resize', updateFromScroll);
-      window.removeEventListener('orientationchange', updateFromScroll);
-      window.removeEventListener('load', updateFromScroll);
-      window.removeEventListener('pageshow', updateFromScroll);
-      prefersReducedMotion.removeEventListener('change', handleMotionPreference);
+      cancelled = true;
+      if (idleId !== undefined) idleWindow.cancelIdleCallback?.(idleId);
+      if (timeoutId) window.clearTimeout(timeoutId);
+      disposeAnimation?.();
+      showCardsFallback();
     };
   }, []);
 
