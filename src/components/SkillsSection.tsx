@@ -136,7 +136,10 @@ export const SkillsSection: React.FC = () => {
             const node = nodeRefs.current[index];
             const card = cardRefs.current[index];
             const nodeProgress = nodePoint.length / pathLength;
-            const reveal = value >= .999 ? 1 : clamp((value - nodeProgress + .055) / .1);
+            const revealStart = Math.max(0, nodeProgress - .035);
+            const revealEnd = Math.min(1, revealStart + .11);
+            const rawReveal = value >= .999 ? 1 : clamp((value - revealStart) / Math.max(revealEnd - revealStart, .001));
+            const reveal = rawReveal * rawReveal * (3 - 2 * rawReveal);
             const glowStart = Math.max(0, nodeProgress - .035);
             const glowEnd = Math.min(1, nodeProgress + .04);
             const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
@@ -146,8 +149,9 @@ export const SkillsSection: React.FC = () => {
             }
             if (card) {
               card.style.opacity = `${reveal.toFixed(3)}`;
-              const fallOffset = (1 - reveal) ** 2 * -120;
-              card.style.transform = `translate3d(0, ${fallOffset.toFixed(1)}px, 0)`;
+              const fallOffset = (1 - reveal) ** 2 * -160;
+              const fallRotation = (1 - reveal) * -5;
+              card.style.transform = `perspective(900px) translate3d(0, ${fallOffset.toFixed(1)}px, 0) rotateX(${fallRotation.toFixed(2)}deg)`;
               card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
             }
           });

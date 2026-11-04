@@ -59,7 +59,7 @@ p { text-wrap: pretty; }
   will-change: transform, opacity, filter;
   opacity: 0;
   filter: blur(8px);
-  transform: translate3d(0, 36px, 0) scale(.82);
+  transform: perspective(600px) translate3d(0, 36px, 0) rotateX(-24deg) scale(.82);
   animation: welcome-letter-reveal 1.05s cubic-bezier(.22, 1, .36, 1)
     calc(.32s + var(--intro-index) * .14s) both;
 }
@@ -69,17 +69,17 @@ p { text-wrap: pretty; }
   0% {
     opacity: 0;
     filter: blur(8px);
-    transform: translate3d(0, 36px, 0) scale(.82);
+    transform: perspective(600px) translate3d(0, 36px, 0) rotateX(-24deg) scale(.82);
   }
   60% {
     opacity: 1;
     filter: blur(0);
-    transform: translate3d(0, -4px, 0) scale(1.02);
+    transform: perspective(600px) translate3d(0, -4px, 0) rotateX(3deg) scale(1.02);
   }
   100% {
     opacity: 1;
     filter: blur(0);
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: perspective(600px) translate3d(0, 0, 0) rotateX(0) scale(1);
   }
 }
 @keyframes welcome-line-reveal { to { opacity: 1; transform: scaleX(1); } }

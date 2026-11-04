@@ -121,7 +121,7 @@ export default function App() {
     <div className="app-shell" ref={pageRef}>
       {welcomeOpen && <div id="welcome" className={`welcome-screen${welcomeLeaving ? ' welcome-screen--leaving' : ''}`} role="status" aria-live="polite" aria-label="Welcome to Anuj Sapkota’s portfolio">
         <div className="welcome-content">
-          <h1 className="welcome-name" aria-label="Anuj">{'ANUJ'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" style={{ '--intro-index': index } as React.CSSProperties} aria-hidden="true">{letter}</span>)}</h1>
+          <h1 className="welcome-name" aria-label="Anuj">{'Anuj'.split('').map((letter, index) => <span key={`${letter}-${index}`} className="welcome-letter" style={{ '--intro-index': index } as React.CSSProperties} aria-hidden="true">{letter}</span>)}</h1>
           <span className="welcome-rule" aria-hidden="true" />
           <p className="welcome-caption">CREATIVE DEVELOPER</p>
         </div>
