@@ -182,17 +182,12 @@ html:not([data-portfolio-intro-complete]) .hero-title-line > span { opacity: 0; 
 .section-intro { max-width: 345px; color: #9a9a9a; font-size: .88rem; line-height: 1.8; }
 .skills-timeline { position: relative; width: min(100%, 1100px); height: clamp(1100px, 105vw, 1320px); margin: 0 auto; isolation: isolate; }
 .skills-timeline__svg { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.skills-timeline__track, .skills-timeline__progress { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.skills-timeline__track { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .skills-timeline__track { stroke: rgba(210,220,235,.18); stroke-width: 1.5px; }
-.skills-timeline__progress { stroke: url(#skills-path-gradient); stroke-width: 2.2px; filter: drop-shadow(0 0 4px rgba(145,200,255,.52)); }
-.skills-timeline__particle { position: absolute; z-index: 4; width: 13px; height: 13px; border: 1px solid rgba(235,247,255,.95); border-radius: 50%; background: #fff; box-shadow: 0 0 7px 2px rgba(255,255,255,.78), 0 0 20px 6px rgba(108,182,255,.54); transform: translate(-50%, -50%); pointer-events: none; }
-.skills-timeline__node { --node-glow: 0; position: absolute; z-index: 3; display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(195,210,230,.58); border-radius: 50%; background: #090a0d; box-shadow: 0 0 0 5px rgba(255,255,255,.018), 0 0 15px rgba(105,177,255,var(--node-glow)), inset 0 0 12px rgba(185,215,255,var(--node-glow)); transform: translate(-50%, -50%); transition: border-color .2s ease, box-shadow .2s ease; }
-.skills-timeline__node > span { width: 7px; height: 7px; border-radius: 50%; background: #7c8490; transition: background .2s ease, box-shadow .2s ease; }
-.skills-timeline__node--lit { border-color: #eaf5ff; opacity: 1; filter: brightness(1.8); box-shadow: 0 0 18px rgba(255,255,255,.65); }
-.skills-timeline__node--lit > span { background: #fff; box-shadow: 0 0 8px 2px #9bceff; }
+.skills-timeline__node { position: absolute; z-index: 3; display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(195,210,230,.58); border-radius: 50%; background: #090a0d; box-shadow: 0 0 0 5px rgba(255,255,255,.018); transform: translate(-50%, -50%); }
+.skills-timeline__node > span { width: 7px; height: 7px; border-radius: 50%; background: #7c8490; }
 .skill-item { position: absolute; top: var(--skill-node-y); z-index: 2; min-height: 218px; padding: clamp(1.2rem, 2.5vw, 2rem); border: 1px solid #333943; border-radius: 12px; background: linear-gradient(145deg, rgba(24,26,31,.96), rgba(9,10,13,.94) 72%); box-shadow: 0 18px 40px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.035); will-change: transform, opacity; }
-.skills-timeline--animated .skill-item { transition: opacity 0.15s linear; will-change: transform, opacity; }
-.skills-timeline__node--lit { --node-glow: 1; }
+.skills-timeline--animated .skill-item { will-change: transform, opacity; }
 .skill-item::after { position: absolute; top: 0; width: 31%; border-top: 1px solid rgba(205,220,240,.42); content: ''; }
 .skill-item--left { left: 4%; width: 41%; }
 .skill-item--left::after { right: -31%; }

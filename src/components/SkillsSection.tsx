@@ -59,20 +59,14 @@ function closestLengthOnPath(
 
 export const SkillsSection: React.FC = () => {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
-  const progressPathRef = useRef<SVGPathElement>(null);
-  const particleRef = useRef<HTMLSpanElement>(null);
   const nodeRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
 
   useEffect(() => {
     const scene = sceneRef.current;
     const path = pathRef.current;
-    const progressPath = progressPathRef.current;
-    const particle = particleRef.current;
-    if (!scene || !path || !progressPath || !particle) return;
-    const sectionHeading = headingRef.current;
+    if (!scene || !path) return;
     const cards = cardRefs.current.filter((card): card is HTMLElement => Boolean(card));
     let cancelled = false;
     let idleId: number | undefined;
@@ -86,11 +80,6 @@ export const SkillsSection: React.FC = () => {
         card.style.removeProperty('visibility');
         card.style.removeProperty('transform');
       });
-      if (sectionHeading) {
-        sectionHeading.style.removeProperty('opacity');
-        sectionHeading.style.removeProperty('visibility');
-        sectionHeading.style.removeProperty('transform');
-      }
     };
 
     const init = () => {
@@ -99,10 +88,7 @@ export const SkillsSection: React.FC = () => {
         const pathLength = path.getTotalLength();
         if (!Number.isFinite(pathLength) || pathLength <= 0) throw new Error('Invalid skills path length');
         const nodePoints = NODE_ANCHORS.map(({ x, y }) => closestLengthOnPath(path, pathLength, x, y));
-        const heading = headingRef.current;
 
-        progressPath.style.strokeDasharray = `${pathLength}`;
-        progressPath.style.strokeDashoffset = `${pathLength}`;
         nodePoints.forEach((point, index) => {
           const node = nodeRefs.current[index];
           const card = cardRefs.current[index];
@@ -116,43 +102,22 @@ export const SkillsSection: React.FC = () => {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         let progress = 0;
         let targetProgress = 0;
-        let headingProgress = 0;
-        let targetHeadingProgress = 0;
         let frame = 0;
         let lastTime = 0;
 
-        const draw = (value: number, headingValue: number) => {
-          const distance = pathLength * value;
-          progressPath.style.strokeDashoffset = `${pathLength - distance}`;
-          const point = path.getPointAtLength(clamp(distance, 0, pathLength));
-          particle.style.left = `${(point.x / 1000) * 100}%`;
-          particle.style.top = `${(point.y / 1200) * 100}%`;
-          if (heading) {
-            heading.style.opacity = `${headingValue.toFixed(3)}`;
-            const headingTravel = prefersReducedMotion.matches ? 6 : 22;
-            heading.style.transform = `translate3d(0, ${((1 - headingValue) * headingTravel).toFixed(1)}px, 0)`;
-            heading.style.visibility = 'visible';
-          }
+        const draw = (value: number) => {
           nodePoints.forEach((nodePoint, index) => {
-            const node = nodeRefs.current[index];
             const card = cardRefs.current[index];
             const nodeProgress = nodePoint.length / pathLength;
             const revealStart = Math.max(0, nodeProgress - .035);
             const revealEnd = Math.min(1, revealStart + .11);
             const rawReveal = value >= .999 ? 1 : clamp((value - revealStart) / Math.max(revealEnd - revealStart, .001));
             const reveal = rawReveal * rawReveal * (3 - 2 * rawReveal);
-            const glowStart = Math.max(0, nodeProgress - .035);
-            const glowEnd = Math.min(1, nodeProgress + .04);
-            const glow = clamp((value - glowStart) / Math.max(glowEnd - glowStart, .001));
-            if (node) {
-              node.style.setProperty('--node-glow', `${glow.toFixed(3)}`);
-              node.classList.toggle('skills-timeline__node--lit', glow > .05);
-            }
             if (card) {
               card.style.opacity = `${reveal.toFixed(3)}`;
-              const fallOffset = (1 - reveal) ** 2 * (prefersReducedMotion.matches ? -16 : -160);
-              const fallRotation = prefersReducedMotion.matches ? 0 : (1 - reveal) * -5;
-              card.style.transform = `perspective(900px) translate3d(0, ${fallOffset.toFixed(1)}px, 0) rotateX(${fallRotation.toFixed(2)}deg)`;
+              const fallDistance = prefersReducedMotion.matches ? 16 : 160;
+              const fallOffset = (1 - reveal) ** 2 * -fallDistance;
+              card.style.transform = `translate3d(0, ${fallOffset.toFixed(1)}px, 0)`;
               card.style.visibility = reveal > .005 ? 'visible' : 'hidden';
             }
           });
@@ -162,29 +127,19 @@ export const SkillsSection: React.FC = () => {
           const rect = scene.getBoundingClientRect();
           return clamp((window.innerHeight * .62 - rect.top) / Math.max(rect.height, 1));
         };
-        const calculateHeadingProgress = () => {
-          if (!heading) return 1;
-          const rect = heading.getBoundingClientRect();
-          return clamp((window.innerHeight * .92 - rect.top) / Math.max(window.innerHeight * .22, 1));
-        };
-
         const animate = (now: number) => {
           frame = 0;
           const dt = lastTime ? Math.min(48, now - lastTime) : 16.667;
           lastTime = now;
           const easing = 1 - Math.exp(-dt / (prefersReducedMotion.matches ? 28 : 48));
           progress += (targetProgress - progress) * easing;
-          headingProgress += (targetHeadingProgress - headingProgress) * easing;
           if (Math.abs(targetProgress - progress) < .0004) progress = targetProgress;
-          if (Math.abs(targetHeadingProgress - headingProgress) < .002) headingProgress = targetHeadingProgress;
-          draw(progress, headingProgress);
-          if (progress !== targetProgress || headingProgress !== targetHeadingProgress) frame = requestAnimationFrame(animate);
+          draw(progress);
+          if (progress !== targetProgress) frame = requestAnimationFrame(animate);
         };
 
         const updateFromScroll = () => {
-          particle.style.opacity = prefersReducedMotion.matches ? '0' : '';
           targetProgress = calculateProgress();
-          targetHeadingProgress = calculateHeadingProgress();
           if (!frame) frame = requestAnimationFrame(animate);
         };
         const handleMotionPreference = () => {
@@ -192,9 +147,7 @@ export const SkillsSection: React.FC = () => {
         };
 
         progress = targetProgress = calculateProgress();
-        headingProgress = targetHeadingProgress = calculateHeadingProgress();
-        draw(progress, headingProgress);
-        particle.style.opacity = prefersReducedMotion.matches ? '0' : '';
+        draw(progress);
         scene.classList.add('skills-timeline--animated');
         window.addEventListener('scroll', updateFromScroll, { passive: true });
         window.addEventListener('resize', updateFromScroll);
@@ -242,24 +195,15 @@ export const SkillsSection: React.FC = () => {
   return (
     <section id="skills" className="section section--skills" aria-labelledby="skills-title">
       <div className="page-shell">
-        <div className="section-header" ref={headingRef}>
+        <div className="section-header">
           <div><p className="eyebrow"><span className="section-number">02</span> SKILLS &amp; CURIOSITY</p><h2 id="skills-title" className="section-heading">What I’m <span className="text-silver">exploring.</span></h2></div>
           <p className="section-intro">Hands-on technologies surfaced in my public repositories, alongside the areas I’m learning about.</p>
         </div>
 
         <div className="skills-timeline" ref={sceneRef}>
           <svg className="skills-timeline__svg" viewBox="0 0 1000 1200" preserveAspectRatio="none" aria-hidden="true">
-            <defs>
-              <linearGradient id="skills-path-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#d9eaff" />
-                <stop offset="48%" stopColor="#82bfff" />
-                <stop offset="100%" stopColor="#f2f6ff" />
-              </linearGradient>
-            </defs>
             <path ref={pathRef} className="skills-timeline__track" d={SKILLS_PATH} />
-            <path ref={progressPathRef} className="skills-timeline__progress" d={SKILLS_PATH} />
           </svg>
-          <span ref={particleRef} className="skills-timeline__particle" aria-hidden="true" />
           {NODE_ANCHORS.map((anchor, index) => (
             <span key={`node-${index}`} ref={(element) => { nodeRefs.current[index] = element; }} className="skills-timeline__node" style={{ left: `${anchor.x / 10}%`, top: `${anchor.y / 12}%` }} aria-hidden="true">
               <span />
