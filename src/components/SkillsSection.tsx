@@ -134,7 +134,7 @@ export const SkillsSection: React.FC = () => {
             <article
               ref={(element) => { cardRefs.current[index] = element; }}
               className={`skill-item ${index % 2 === 0 ? 'skill-item--right' : 'skill-item--left'}`}
-              style={{ '--skill-node-y': `${NODE_ANCHORS[index].y / 12}%` } as React.CSSProperties}
+              style={{ top: `${NODE_ANCHORS[index].y / 12}%` }}
               key={title}
               aria-label={`${title}. ${note}`}
             >

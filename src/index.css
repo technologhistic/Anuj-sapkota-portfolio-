@@ -186,7 +186,7 @@ html:not([data-portfolio-intro-complete]) .hero-title-line > span { opacity: 0; 
 .skills-timeline__track { stroke: rgba(210,220,235,.18); stroke-width: 1.5px; }
 .skills-timeline__node { position: absolute; z-index: 3; display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(195,210,230,.58); border-radius: 50%; background: #090a0d; box-shadow: 0 0 0 5px rgba(255,255,255,.018); transform: translate(-50%, -50%); }
 .skills-timeline__node > span { width: 7px; height: 7px; border-radius: 50%; background: #7c8490; }
-.skill-item { position: absolute; top: var(--skill-node-y); z-index: 2; min-height: 218px; padding: clamp(1.2rem, 2.5vw, 2rem); border: 1px solid #333943; border-radius: 12px; background: linear-gradient(145deg, rgba(24,26,31,.96), rgba(9,10,13,.94) 72%); box-shadow: 0 18px 40px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.035); }
+.skill-item { position: absolute; z-index: 2; min-height: 218px; padding: clamp(1.2rem, 2.5vw, 2rem); border: 1px solid #333943; border-radius: 12px; background: linear-gradient(145deg, rgba(24,26,31,.96), rgba(9,10,13,.94) 72%); box-shadow: 0 18px 40px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.035); }
 .skills-timeline--animated .skill-item { opacity: 0; transform: translate3d(0, -80px, 0); transition: opacity .5s ease, transform .75s cubic-bezier(.2,.75,.2,1); will-change: opacity, transform; }
 .skills-timeline--animated .skill-item--revealed { opacity: 1; transform: translate3d(0, 0, 0); }
 .skill-item::after { position: absolute; top: 0; width: 31%; border-top: 1px solid rgba(205,220,240,.42); content: ''; }
