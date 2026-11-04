@@ -355,8 +355,6 @@ html:not([data-portfolio-intro-complete]) .hero-title-line > span { opacity: 0; 
   .skill-item--left::after { top: -18px; }
   .skill-item--right::after { top: -18px; }
   .language-ledger { grid-template-columns: 1fr; gap: 1.1rem; }
-  .project-orbit-stage { min-height: 0; }
-  .project-details > p { min-height: 0; }
   .project-drawer-layer { align-items: flex-end; }
   .project-drawer { width: 100%; min-height: 0; max-height: min(82svh, 720px); padding-top: .55rem; border-top: 1px solid #474747; border-left: 0; border-radius: 20px 20px 0 0; transform-origin: center bottom; }
   .project-drawer__grabber { display: grid; height: 34px; place-items: center; touch-action: none; cursor: grab; }
