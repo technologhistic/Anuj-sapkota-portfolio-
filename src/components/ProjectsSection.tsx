@@ -1,14 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowUpRight, Github, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Github, X } from 'lucide-react';
 import { PROJECTS, type PortfolioProject } from '../data/portfolioData';
 
 type DrawerMotion = { x: number; y: number; vx: number; vy: number; alpha: number; alphaVelocity: number };
-type OrbitMotion = {
-  angle: number; velocity: number; targetAngle: number | null; dragging: boolean; lastPointerX: number;
-  pointerX: number; pointerY: number; lightX: number; lightY: number;
-};
-
 export const ProjectsSection: React.FC = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
@@ -18,183 +14,24 @@ export const ProjectsSection: React.FC = () => {
   const drawerRef = useRef<HTMLElement>(null);
   const backdropRef = useRef<HTMLButtonElement>(null);
   const drawerMotionRef = useRef<DrawerMotion>({ x: 0, y: 0, vx: 0, vy: 0, alpha: 0, alphaVelocity: 0 });
-  const orbitStageRef = useRef<HTMLDivElement>(null);
-  const orbitCardsRef = useRef<Array<HTMLElement | null>>([]);
-  const orbitMotionRef = useRef<OrbitMotion>({ angle: 0, velocity: 0, targetAngle: null, dragging: false, lastPointerX: 0, pointerX: 0, pointerY: 0, lightX: 50, lightY: 50 });
-  const orbitFrameRef = useRef(0);
-  const startOrbitRef = useRef<() => void>(() => {});
-  const reducedMotionRef = useRef(false);
-  const pendingProjectRef = useRef<PortfolioProject | null>(null);
+  const swipeStartRef = useRef<number | null>(null);
 
   const closeDrawer = () => {
     if (selectedProject) setIsClosing(true);
   };
 
-  useLayoutEffect(() => {
-    const stage = orbitStageRef.current;
-    if (!stage) return;
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    reducedMotionRef.current = preference.matches;
-    const motion = orbitMotionRef.current;
-    let lastTime = 0;
-    let reducedMotionTimer = 0;
-
-    const renderOrbit = () => {
-      const rect = stage.getBoundingClientRect();
-      const radiusX = Math.min(rect.width * .34, 360);
-      const radiusY = Math.min(rect.height * .13, 92);
-      const depth = Math.min(rect.width * .23, 240);
-      const count = PROJECTS.length;
-      orbitCardsRef.current.forEach((card, index) => {
-        if (!card) return;
-        const theta = motion.angle + (index / count) * Math.PI * 2;
-        const sine = Math.sin(theta);
-        const cosine = Math.cos(theta);
-        const front = (cosine + 1) / 2;
-        const x = sine * radiusX;
-        const y = cosine * radiusY;
-        const z = cosine * depth;
-        const scale = .73 + front * .27;
-        const rotateY = sine * 16 + motion.lightX / 50 - 1;
-        const rotateX = (50 - motion.lightY) * .035;
-        card.style.transform = `translate3d(-50%, -50%, 0) translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, ${z.toFixed(1)}px) rotateY(${rotateY.toFixed(2)}deg) rotateX(${rotateX.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-        card.style.zIndex = `${Math.round(10 + cosine * 10)}`;
-        card.style.opacity = `${(.58 + front * .42).toFixed(3)}`;
-        card.style.filter = `brightness(${(.58 + front * .42).toFixed(3)})`;
-        card.style.setProperty('--orbit-light-x', `${motion.lightX.toFixed(1)}%`);
-        card.style.setProperty('--orbit-light-y', `${motion.lightY.toFixed(1)}%`);
-      });
-    };
-
-    const animate = (now: number) => {
-      orbitFrameRef.current = 0;
-      const dt = lastTime ? Math.min(2, Math.max(.5, (now - lastTime) / 16.667)) : 1;
-      lastTime = now;
-      const damping = Math.pow(.78, dt);
-      if (motion.dragging) {
-        motion.velocity *= damping;
-      } else if (motion.targetAngle !== null) {
-        motion.velocity = (motion.velocity + (motion.targetAngle - motion.angle) * .085 * dt) * damping;
-        motion.angle += motion.velocity * dt;
-        if (Math.abs(motion.targetAngle - motion.angle) < .002 && Math.abs(motion.velocity) < .002) {
-          motion.angle = motion.targetAngle;
-          motion.velocity = 0;
-          motion.targetAngle = null;
-          if (pendingProjectRef.current) {
-            setSelectedProject(pendingProjectRef.current);
-            pendingProjectRef.current = null;
-          }
-        }
-      } else {
-        motion.angle += motion.velocity * dt;
-        motion.velocity *= damping;
-        motion.angle += (reducedMotionRef.current ? .0012 : .0032) * dt;
-      }
-
-      const lightEase = 1 - Math.pow(.76, dt);
-      motion.lightX += (motion.pointerX - motion.lightX) * lightEase;
-      motion.lightY += (motion.pointerY - motion.lightY) * lightEase;
-      renderOrbit();
-
-      const lightMoving = Math.abs(motion.pointerX - motion.lightX) > .12 || Math.abs(motion.pointerY - motion.lightY) > .12;
-      const activeMotion = motion.dragging || motion.targetAngle !== null || lightMoving || Math.abs(motion.velocity) > .002;
-      if (!reducedMotionRef.current || activeMotion) {
-        orbitFrameRef.current = requestAnimationFrame(animate);
-      } else {
-        reducedMotionTimer = window.setTimeout(startOrbit, 80);
-      }
-    };
-
-    const startOrbit = () => {
-      if (reducedMotionTimer) {
-        window.clearTimeout(reducedMotionTimer);
-        reducedMotionTimer = 0;
-      }
-      if (!orbitFrameRef.current) {
-        lastTime = 0;
-        orbitFrameRef.current = requestAnimationFrame(animate);
-      }
-    };
-    startOrbitRef.current = startOrbit;
-    renderOrbit();
-    startOrbit();
-    const onResize = () => { renderOrbit(); startOrbit(); };
-    window.addEventListener('resize', onResize);
-
-    const onMotionPreference = (event: MediaQueryListEvent) => {
-      reducedMotionRef.current = event.matches;
-      startOrbit();
-    };
-    preference.addEventListener('change', onMotionPreference);
-    return () => {
-      cancelAnimationFrame(orbitFrameRef.current);
-      if (reducedMotionTimer) window.clearTimeout(reducedMotionTimer);
-      orbitFrameRef.current = 0;
-      startOrbitRef.current = () => {};
-      preference.removeEventListener('change', onMotionPreference);
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
-
-  const updatePointer = (event: React.PointerEvent<HTMLDivElement>) => {
-    const stage = orbitStageRef.current;
-    if (!stage) return;
-    const rect = stage.getBoundingClientRect();
-    const motion = orbitMotionRef.current;
-    motion.pointerX = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-    motion.pointerY = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
-    startOrbitRef.current();
-  };
-
-  const startOrbitDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest('a, button')) return;
-    const motion = orbitMotionRef.current;
-    motion.dragging = true;
-    motion.lastPointerX = event.clientX;
-    motion.velocity = 0;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    updatePointer(event);
-    startOrbitRef.current();
-  };
-
-  const rotateOrbit = (event: React.PointerEvent<HTMLDivElement>) => {
-    const motion = orbitMotionRef.current;
-    updatePointer(event);
-    if (!motion.dragging) return;
-    const delta = event.clientX - motion.lastPointerX;
-    motion.angle += delta * .008;
-    motion.velocity = delta * .00035;
-    motion.lastPointerX = event.clientX;
-    startOrbitRef.current();
-  };
-
-  const endOrbitDrag = () => {
-    const motion = orbitMotionRef.current;
-    if (!motion.dragging) return;
-    motion.dragging = false;
-    motion.pointerX = 50;
-    motion.pointerY = 50;
-    startOrbitRef.current();
-  };
-
-  const selectProject = (project: PortfolioProject, index: number) => {
-    const motion = orbitMotionRef.current;
-    const step = (Math.PI * 2) / PROJECTS.length;
-    const frontAngle = -index * step;
-    const target = frontAngle + Math.round((motion.angle - frontAngle) / (Math.PI * 2)) * Math.PI * 2;
+  const selectProject = (project: PortfolioProject) => {
     setIsClosing(false);
-    if (reducedMotionRef.current) {
-      motion.angle = target;
-      motion.velocity = 0;
-      motion.targetAngle = null;
-      setSelectedProject(project);
-      startOrbitRef.current();
-      return;
-    }
-    pendingProjectRef.current = project;
-    motion.targetAngle = target;
-    motion.velocity = 0;
-    startOrbitRef.current();
+    setSelectedProject(project);
+  };
+
+  const showPreviousProject = () => setActiveIndex((index) => (index - 1 + PROJECTS.length) % PROJECTS.length);
+  const showNextProject = () => setActiveIndex((index) => (index + 1) % PROJECTS.length);
+  const finishSwipe = (endX: number) => {
+    if (swipeStartRef.current === null) return;
+    const distance = endX - swipeStartRef.current;
+    if (Math.abs(distance) > 45) distance < 0 ? showNextProject() : showPreviousProject();
+    swipeStartRef.current = null;
   };
 
   useEffect(() => {
@@ -239,7 +76,7 @@ export const ProjectsSection: React.FC = () => {
     const drawer = drawerRef.current;
     const backdrop = backdropRef.current;
     const mobile = window.matchMedia('(max-width: 720px)').matches;
-    const reducedMotion = reducedMotionRef.current;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const motion = drawerMotionRef.current;
     const travel = reducedMotion ? 16 : mobile ? drawer.offsetHeight + 40 : drawer.offsetWidth + 40;
 
@@ -324,36 +161,27 @@ export const ProjectsSection: React.FC = () => {
       </div>
 
       <div
-        ref={orbitStageRef}
         className="project-orbit-stage"
         role="region"
-        aria-label="Interactive circular orbit of portfolio projects. Drag horizontally or swipe to rotate."
+        aria-label="Selected portfolio projects. Swipe horizontally or use the previous and next buttons."
         tabIndex={0}
-        onPointerDown={startOrbitDrag}
-        onPointerMove={rotateOrbit}
-        onPointerUp={endOrbitDrag}
-        onPointerCancel={endOrbitDrag}
-        onPointerLeave={() => {
-          if (!orbitMotionRef.current.dragging) {
-            orbitMotionRef.current.pointerX = 50;
-            orbitMotionRef.current.pointerY = 50;
-            startOrbitRef.current();
-          }
+        onPointerDown={(event) => {
+          if ((event.target as HTMLElement).closest('a, button')) return;
+          swipeStartRef.current = event.clientX;
+          event.currentTarget.setPointerCapture(event.pointerId);
         }}
+        onPointerUp={(event) => finishSwipe(event.clientX)}
+        onPointerCancel={() => { swipeStartRef.current = null; }}
         onKeyDown={(event) => {
           if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
           event.preventDefault();
-          const motion = orbitMotionRef.current;
-          motion.targetAngle = motion.angle + (event.key === 'ArrowLeft' ? -.5 : .5);
-          if (reducedMotionRef.current) {
-            motion.angle = motion.targetAngle;
-            motion.targetAngle = null;
-          }
-          startOrbitRef.current();
+          event.key === 'ArrowLeft' ? showPreviousProject() : showNextProject();
         }}
       >
-        {PROJECTS.map((project, index) => (
-          <article ref={(element) => { orbitCardsRef.current[index] = element; }} className="project-card" key={project.name}>
+        {(() => {
+          const project = PROJECTS[activeIndex];
+          const index = activeIndex;
+          return <article className="project-card" key={project.name} aria-live="polite" aria-label={`Project ${activeIndex + 1} of ${PROJECTS.length}`}>
             <a className="project-image" href={project.demo ?? project.repository} target="_blank" rel="noreferrer" aria-label={`Open ${project.name} ${project.demo ? 'live demo' : 'repository'}`}>
               <img src={project.image} alt={project.imageAlt} loading="lazy" width="1200" height="1200" />
               <span className="project-image__kind">{project.imageKind}</span>
@@ -366,13 +194,18 @@ export const ProjectsSection: React.FC = () => {
                 {project.technologies.length ? project.technologies.map((item) => <li key={item}>{item}</li>) : <li>Technology details not listed</li>}
               </ul>
               <div className="project-links">
-                <button className="project-details-button" type="button" onClick={(event) => { drawerTriggerRef.current = event.currentTarget; selectProject(project, index); }}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
+                <button className="project-details-button" type="button" onClick={(event) => { drawerTriggerRef.current = event.currentTarget; selectProject(project); }}>View details <ArrowUpRight size={13} aria-hidden="true" /></button>
                 <a href={project.repository} target="_blank" rel="noreferrer"><Github size={15} aria-hidden="true" />Repository <ArrowUpRight size={13} aria-hidden="true" /></a>
                 {project.demo && <a href={project.demo} target="_blank" rel="noreferrer">Live demo{project.demoNote ? ` · ${project.demoNote}` : ''} <ArrowUpRight size={13} aria-hidden="true" /></a>}
               </div>
             </div>
-          </article>
-        ))}
+          </article>;
+        })()}
+      </div>
+      <div className="project-carousel-controls" aria-label="Project selection">
+        <button type="button" onClick={showPreviousProject} aria-label="Show previous project"><ArrowLeft size={17} aria-hidden="true" /></button>
+        <span aria-live="polite">{String(activeIndex + 1).padStart(2, '0')} <span aria-hidden="true">/</span> {String(PROJECTS.length).padStart(2, '0')}</span>
+        <button type="button" onClick={showNextProject} aria-label="Show next project"><ArrowRight size={17} aria-hidden="true" /></button>
       </div>
       <p className="project-source-note">Project previews link to their published demo or repository. Technologies are shown only where repository metadata or source identifies them.</p>
     </div>
